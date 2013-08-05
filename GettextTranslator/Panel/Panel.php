@@ -188,7 +188,7 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 	 * @param array
 	 * @return string
 	 */
-	private function getActiveFile($files)
+	protected function getActiveFile($files)
 	{
 		$tmp = explode(':', $this->application->presenter->name);
 
