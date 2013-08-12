@@ -192,17 +192,14 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 	{
 		$tmp = explode(':', $this->application->presenter->name);
 
-		if (count($tmp) >= 2 && $module = strtolower($tmp[0])) {
+		if (count($tmp) >= 2) {
+			$module = strtolower($tmp[0]);
 			if (isset($files[$module])) {
 				return $module;
-
-			} else {
-				return $files[0];
 			}
-
-		} else {
-			return $files[0];
 		}
+
+		return $files[0];
 	}
 
 }
