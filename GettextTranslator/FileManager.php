@@ -25,6 +25,16 @@ class FileManager extends Nette\Object
 	);
 
 
+	/** @var Nette\Http\SessionSection */
+	private $sessionStorage;
+
+
+	public function __construct(Nette\Http\Session $session)
+	{
+		$this->sessionStorage = $session->getSection(Gettext::$namespace);
+	}
+
+
 	/**
 	 * @param string
 	 * @param array
