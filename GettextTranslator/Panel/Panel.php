@@ -188,16 +188,18 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 	 * @param array
 	 * @return string
 	 */
-	private function getActiveFile($files)
+	protected function getActiveFile($files)
 	{
 		$tmp = explode(':', $this->application->presenter->name);
 
-		if (count($tmp) >= 2 && $module = strtolower($tmp[0])) {
-			return $module;
-
-		} else {
-			return $files[0];
+		if (count($tmp) >= 2) {
+			$module = strtolower($tmp[0]);
+			if (isset($files[$module])) {
+				return $module;
+			}
 		}
+
+		return $files[0];
 	}
 
 }
