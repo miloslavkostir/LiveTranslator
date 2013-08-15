@@ -9,6 +9,7 @@ if (!class_exists('Nette\DI\CompilerExtension')) {
 	class_alias('Nette\Config\CompilerExtension', 'Nette\DI\CompilerExtension');
 }
 
+
 class Extension extends Nette\DI\CompilerExtension
 {
 	/** @var array */
@@ -23,6 +24,10 @@ class Extension extends Nette\DI\CompilerExtension
 	public function loadConfiguration()
 	{
 		$config = $this->getConfig($this->defaults);
+		if (count($config['files']) === 0) {
+			throw new InvalidConfigException('At least one language file must be defined.');
+		}
+
 		$builder = $this->getContainerBuilder();
 
 		$translator = $builder->addDefinition($this->prefix('translator'));
@@ -30,10 +35,9 @@ class Extension extends Nette\DI\CompilerExtension
 		$translator->addSetup('setLang', $config['lang']);
 		$translator->addSetup('setProductionMode', $builder->expand('%productionMode%'));
 
-		// at least one language file must be defined
-		if (count($config['files']) === 0) {
-			throw new InvalidConfigException('Language file(s) must be defined.');
-		}
+		$fileManager = $builder->addDefinition($this->prefix('fileManager'));
+		$fileManager->setClass('GettextTranslator\FileManager');
+
 		foreach ($config['files'] as $id => $file) {
 			$translator->addSetup('addFile', $file, $id);
 		}
@@ -42,6 +46,7 @@ class Extension extends Nette\DI\CompilerExtension
 	}
 
 }
+
 
 class InvalidConfigException extends Nette\InvalidStateException {
 
