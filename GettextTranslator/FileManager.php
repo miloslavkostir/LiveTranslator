@@ -3,6 +3,7 @@
 namespace GettextTranslator;
 
 use Nette;
+use Nette\Utils\Strings;
 
 
 class FileManager extends Nette\Object
@@ -23,16 +24,6 @@ class FileManager extends Nette\Object
 		'X-Poedit-SourceCharset' => NULL,
 		'X-Poedit-KeywordsList' => NULL
 	);
-
-
-	/** @var Nette\Http\SessionSection */
-	private $sessionStorage;
-
-
-	public function __construct(Nette\Http\Session $session)
-	{
-		$this->sessionStorage = $session->getSection(Gettext::$namespace);
-	}
 
 
 	/**
@@ -83,13 +74,15 @@ class FileManager extends Nette\Object
 	 * @param string
 	 * @param string
 	 * @param array
+	 * @param array
+	 * @param string
 	 */
-	public function buildPOFile($file, $identifier, $metadata)
+	public function buildPOFile($file, $identifier, $metadata, $dictionary, $newStrings)
 	{
 		$po = "# Gettext keys exported by GettextTranslator and Translation Panel\n" . "# Created: " . date('Y-m-d H:i:s') . "\n" . 'msgid ""' . "\n" . 'msgstr ""' . "\n";
 		$po .= '"' . implode('\n"' . "\n" . '"', $metadata) . '\n"' . "\n\n\n";
 
-		foreach ($this->dictionary as $message => $data) {
+		foreach ($dictionary as $message => $data) {
 			if ($data['file'] !== $identifier) {
 				continue;
 			}
@@ -117,9 +110,9 @@ class FileManager extends Nette\Object
 			$po .= "\n";
 		}
 
-		if (isset($this->sessionStorage->newStrings[$this->lang])) {
-			foreach ($this->sessionStorage->newStrings[$this->lang] as $original) {
-				if (trim(current($original)) != "" && !\array_key_exists(current($original), $this->dictionary)) {
+		if (count($newStrings)) {
+			foreach ($newStrings as $original) {
+				if (trim(current($original)) != "" && !\array_key_exists(current($original), $dictionary)) {
 					$po .= 'msgid "' . str_replace(array('"'), array('\"'), current($original)) . '"' . "\n";
 
 					if (count($original) > 1) {
@@ -140,14 +133,17 @@ class FileManager extends Nette\Object
 	 * @param string
 	 * @param string
 	 * @param array
+	 * @param array
 	 */
-	public function buildMOFile($file, $identifier, $metadata)
+	public function buildMOFile($file, $identifier, $metadata, $dictionary)
 	{
-		$dictionary = array_filter($this->dictionary, function ($data) use ($identifier) {
+		$dictionary = array_filter($dictionary, function ($data) use ($identifier) {
 			return $data['file'] === $identifier;
 		});
 
 		ksort($dictionary);
+
+		$metadata = implode("\n", $metadata);
 
 		$items = count($dictionary) + 1;
 		$ids = Strings::chr(0x00);
