@@ -4,6 +4,7 @@ namespace GettextTranslator;
 
 use Nette;
 
+
 class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 {
 	/** @var string */
@@ -36,7 +37,7 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 
 	/**
 	 * @param Nette\Application\Application
-	 * @param Gettext\Translator\Gettext 
+	 * @param Gettext\Translator\Gettext
 	 * @param Nette\Http\Session
 	 * @param Nette\Http\Request
 	 * @param string
@@ -60,7 +61,7 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 	 * @return string
 	 */
 	public function getId()
-	{	
+	{
 		return __CLASS__;
 	}
 
@@ -100,7 +101,7 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 				$strings[$string] = FALSE;
 			}
 		}
-		
+
 		$translator = $this->translator;
 
 		ob_start();
@@ -174,12 +175,12 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 	 * @param GettextTranslator\Gettext
 	 * @param Nette\Http\Session
 	 * @param Nette\Http\Request
-	 * @param int $layout
-	 * @param int $height
+	 * @param int
+	 * @param int
 	 */
-	public static function register(Nette\Application\Application $application, Gettext $translator, Nette\Http\Session $session, Nette\Http\Request $httpRequest, $layout, $height) 
+	public static function register(Nette\Application\Application $application, Gettext $translator, Nette\Http\Session $session, Nette\Http\Request $httpRequest, $layout, $height)
 	{
-		Nette\Diagnostics\Debugger::$bar->addPanel(new static($application, $translator, $session, $httpRequest, $layout, $height));
+		Nette\Diagnostics\Debugger::getBar()->addPanel(new static($application, $translator, $session, $httpRequest, $layout, $height));
 	}
 
 
@@ -188,16 +189,22 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 	 * @param array
 	 * @return string
 	 */
-	private function getActiveFile($files)
+	protected function getActiveFile($files)
 	{
+		if ($this->application == NULL) {
+			return;
+		}
+
 		$tmp = explode(':', $this->application->presenter->name);
 
-		if (count($tmp) >= 2 && $module = strtolower($tmp[0])) {
-			return $module;
-
-		} else {
-			return $files[0];
+		if (count($tmp) >= 2) {
+			$module = strtolower($tmp[0]);
+			if (isset($files[$module])) {
+				return $module;
+			}
 		}
+
+		return $files[0];
 	}
 
 }
