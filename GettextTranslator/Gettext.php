@@ -138,7 +138,6 @@ class Gettext extends Nette\Object implements Nette\Localization\ITranslator
 	public function translate($message, $form = 1)
 	{
 		$this->loadDictonary();
-		$files = array_keys($this->files);
 
 		$message = (string) $message;
 		$message_plural = NULL;
@@ -154,7 +153,7 @@ class Gettext extends Nette\Object implements Nette\Localization\ITranslator
 		}
 
 		if (!empty($message) && isset($this->dictionary[$message])) {
-			$tmp = preg_replace('/([a-z]+)/', '$$1', "n=$form;" . $this->metadata[$files[0]]['Plural-Forms']);
+			$tmp = preg_replace('/([a-z]+)/', '$$1', "n=$form;" . $this->metadata[$this->dictionary[$message]['file']]['Plural-Forms']);
 			eval($tmp);
 
 			$message = $this->dictionary[$message]['translation'];
