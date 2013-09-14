@@ -32,14 +32,14 @@ class Extension extends Nette\DI\CompilerExtension
 
 		$translator = $builder->addDefinition($this->prefix('translator'));
 		$translator->setClass('GettextTranslator\Gettext', array('@session', '@cacheStorage', '@httpResponse'));
-		$translator->addSetup('setLang', $config['lang']);
-		$translator->addSetup('setProductionMode', $builder->expand('%productionMode%'));
+		$translator->addSetup('setLang', array($config['lang']));
+		$translator->addSetup('setProductionMode', array($builder->expand('%productionMode%')));
 
 		$fileManager = $builder->addDefinition($this->prefix('fileManager'));
 		$fileManager->setClass('GettextTranslator\FileManager');
 
 		foreach ($config['files'] as $id => $file) {
-			$translator->addSetup('addFile', $file, $id);
+			$translator->addSetup('addFile', array($file, $id));
 		}
 
 		$translator->addSetup('GettextTranslator\Panel::register', array('@application', '@self', '@session', '@httpRequest', $config['layout'], $config['height']));
