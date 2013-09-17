@@ -352,7 +352,7 @@ var translationPanel = {
 
 		for (var translated in strings) {
 			for (var i in strings[translated]) {
-				if (!this.matchesFilter(i, currentStrings[i]))
+				if (!this.matchesFilter(i, currentStrings[i]) || currentStrings[i] === undefined || typeof(currentStrings[i]) == 'function' )
 					continue;
 
 				var div = document.createElement('div');
