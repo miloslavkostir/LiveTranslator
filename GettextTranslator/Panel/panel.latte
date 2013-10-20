@@ -73,10 +73,21 @@
 	color: #514721;
 }
 
-#TranslationPanel div.TranslationPanel-string.modified {
+#TranslationPanel div.TranslationPanel-string.erased-string a {
+	text-decoration: line-through;
+	cursor: default;
+}
+
+#TranslationPanel div.TranslationPanel-string.modified, #TranslationPanel div.TranslationPanel-string.erased-string {
 	background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAT9JREFUeNpi/P//PwMlgImBQkCxAQwgLyBjdPBqvsV/fHrwGvBmqc2U/x9m/QfRZBnw5Xg+UOjjfxCNywAWdOe9Xmi16P/f37EMDH8ZuDS9GP692w2mX807DDSEmYGRmXUxUFkcTD2GAd/+MkpL+9YxMHPxMfx5d5Th/9ebDIzc6gyiUTMY/nx4zvBsW5c0snpGdGczMjKqXJxoNFHZRMmLTVKL4d+3ewxMXEoMPx+dY7h7+tE2g9JLIH/dwWcAiFL4eqrwPrMAK8Pfj/cYmAXVGX6/ecfAazFdESj3AFkP1nTwZoVXORMXG8PXCycYbh24u+7rucMMLHzCDK8WWJYTlQ7erPT6/3yuxccoO3FPIFc+yk7M8/kC+49vlrv+R9eDywvGQPwHiK8D8S8gZgNiTWign0XWwzj0MxNAgAEA2MzWr2VXRDEAAAAASUVORK5CYII=");
 	background-position: 99% 50%;
 	background-repeat: no-repeat;
+}
+
+#TranslationPanel div.TranslationPanel-string span.do-erase {
+	color: #a40000;
+	cursor: pointer;
+	float: right;
 }
 
 #TranslationPanel-editor {
@@ -182,8 +193,8 @@ JSON.stringify = JSON.stringify || function (obj) {
 		// simple data type
 		if (t == "string") obj = '"'+obj+'"';
 		return String(obj);
-    } else {
-        var n, v, json = [], arr = (obj && obj.constructor == Array);
+	} else {
+		var n, v, json = [], arr = (obj && obj.constructor == Array);
 		for (n in obj) {
 			v = obj[n]; t = typeof(v);
 			if (t == "string") v = '"'+v.replace(/\"/g, '\\"')+'"';
@@ -204,31 +215,31 @@ function in_array (needle, haystack, argStrict) {
    var key = '', strict = !!argStrict;
 
    if (strict) {
-        for (key in haystack) {
-            if (haystack[key] === needle) {
-                return true;
-            }
-        }
-    } else {
-        for (key in haystack) {
-            if (haystack[key] == needle) {
-                return true;
-            }
-        }
-    }
+		for (key in haystack) {
+			if (haystack[key] === needle) {
+				return true;
+			}
+		}
+	} else {
+		for (key in haystack) {
+			if (haystack[key] == needle) {
+				return true;
+			}
+		}
+	}
 
-    return false;
+	return false;
 }
 
 function clone(obj){
-    if(obj == null || typeof(obj) != 'object')
-        return obj;
+	if(obj == null || typeof(obj) != 'object')
+		return obj;
 
-    var temp = obj.constructor(); // changed
+	var temp = obj.constructor(); // changed
 
-    for(var key in obj)
-        temp[key] = clone(obj[key]);
-    return temp;
+	for(var key in obj)
+		temp[key] = clone(obj[key]);
+	return temp;
 }
 
 
@@ -238,6 +249,7 @@ var translationPanel = {
 	variants: <?php echo json_encode($translator->getVariantsCount()); ?>,
 
 	updatedStrings: [],
+	erasedStrings: [],
 	currentString: false,
 	currentFile: false,
 	filter: '',
@@ -366,10 +378,6 @@ var translationPanel = {
 				var label;
 				var stringData = currentStrings[i];
 
-				if (translated == 0) {
-					div.className += ' untranslated';
-				}
-
 				if (!stringData) {
 					label = i;
 				} else {
@@ -388,6 +396,20 @@ var translationPanel = {
 
 				div.appendChild(a);
 				list.appendChild(div);
+
+				if (translated == 0) {
+					div.className += ' untranslated';
+				}
+				else {
+					var span = document.createElement('span');
+					span.className = 'do-erase';
+					span.title = 'erase translation';
+					span.innerHTML = '&times;';
+					span.onclick = function () {
+						translationPanel.erase(this);
+					};
+					div.appendChild(span);
+				}
 
 				this.listElements[i] = div;
 			}
@@ -429,6 +451,21 @@ var translationPanel = {
 		this.setStatus(textarea);
 	},
 
+	erase: function (span) {
+		var div = span.parentNode;
+		var a = div.firstChild;
+
+		this.erasedStrings.push(a.title);
+		div.className += ' erased-string';
+		div.removeChild(span);
+		a.onclick = null;
+		if (this.currentString == a.title)
+			this.currentString = false;
+
+		document.getElementById('TranslationPanel-save').disabled = false;
+		document.getElementById('TranslationPanel-save').className = 'save';
+	},
+
 	fillIn: function (stringData) {
 		if (typeof(stringData) != 'object' || !(stringData instanceof Array))
 			stringData = [stringData];
@@ -461,8 +498,13 @@ var translationPanel = {
 				delete this.strings['newStrings'][this.currentString];
 			}
 			this.updatedStrings.push(this.currentString);
-			if (this.listElements[this.currentString].className.search('modified') == -1)
-				this.listElements[this.currentString].className += ' modified';
+
+			var el = this.listElements[this.currentString];
+			if (el.className.search('modified') == -1)
+				el.className += ' modified';
+
+			if (el.className.search('untranslated') == -1 && el.childElementCount == 2)
+				el.removeChild(el.lastChild);
 
 			document.getElementById('TranslationPanel-save').disabled = false;
 			document.getElementById('TranslationPanel-save').className = 'save';
@@ -477,12 +519,19 @@ var translationPanel = {
 		for (var i in this.updatedStrings) {
 			data[this.updatedStrings[i]] = this.strings[this.currentFile][this.updatedStrings[i]];
 		}
+		for (var i in this.erasedStrings) {
+			data[this.erasedStrings[i]] = false;
+		}
 
 		var xmlHttp = window.ActiveXObject ? new ActiveXObject('Microsoft.XMLHTTP') : new XMLHttpRequest();
 		xmlHttp.onreadystatechange = function() {
 			if (xmlHttp.readyState == 4) {
 				if (xmlHttp.status == 200) {
+					for (var i in translationPanel.erasedStrings) {
+						delete translationPanel.strings[translationPanel.currentFile][translationPanel.erasedStrings[i]];
+					}
 					translationPanel.updatedStrings = [];
+					translationPanel.erasedStrings = [];
 					translationPanel.currentString = false;
 					translationPanel.setStatus('Sucessfuly saved.');
 					translationPanel.drawList(translationPanel.currentFile);
@@ -491,6 +540,7 @@ var translationPanel = {
 					var win = window.open('', 'Error');
 					win.document.write(xmlHttp.responseText);
 					translationPanel.updatedStrings = [];
+					translationPanel.erasedStrings = [];
 					translationPanel.currentString = false;
 					translationPanel.drawList(translationPanel.currentFile);
 				}
