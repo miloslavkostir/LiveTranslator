@@ -122,6 +122,10 @@ div.TranslationPanel-stringVariant textarea {
 	margin: 0.5em 0 !important;
 }
 
+div.TranslationPanel-stringVariant textarea.disabled {
+	background-color: #f9f9f9 !important;
+}
+
 #TranslationPanel-tools {
 	position: absolute;
 	bottom: -1px;
@@ -279,6 +283,8 @@ var translationPanel = {
 				}
 			};
 		}
+
+		this.disable();
 
 		var selectBox = document.getElementById('TranslationPanel-fileSelectBox');
 		selectBox.onchange = function() {
@@ -459,8 +465,9 @@ var translationPanel = {
 		div.className += ' erased-string';
 		div.removeChild(span);
 		a.onclick = null;
-		if (this.currentString == a.title)
-			this.currentString = false;
+		if (this.currentString == a.title){
+			this.disable();
+		}
 
 		document.getElementById('TranslationPanel-save').disabled = false;
 		document.getElementById('TranslationPanel-save').className = 'save';
@@ -472,10 +479,23 @@ var translationPanel = {
 
 		for (var i = 0; i < this.variants; i++) {
 			var textarea = document.getElementById('TranslationPanel-stringVariant_' + i);
+			textarea.disabled = false;
+			textarea.className = '';
+
 			if (stringData[i])
 				textarea.value = stringData[i];
 			else
 				textarea.value = '';
+		}
+	},
+
+	disable: function () {
+		this.currentString = false;
+		for (var i = 0; i < this.variants; i++) {
+			var textarea = document.getElementById('TranslationPanel-stringVariant_' + i);
+			textarea.value = '';
+			textarea.disabled = true;
+			textarea.className = 'disabled';
 		}
 	},
 
@@ -532,7 +552,7 @@ var translationPanel = {
 					}
 					translationPanel.updatedStrings = [];
 					translationPanel.erasedStrings = [];
-					translationPanel.currentString = false;
+					translationPanel.disable();
 					translationPanel.setStatus('Sucessfuly saved.');
 					translationPanel.drawList(translationPanel.currentFile);
 				} else {
@@ -541,7 +561,7 @@ var translationPanel = {
 					win.document.write(xmlHttp.responseText);
 					translationPanel.updatedStrings = [];
 					translationPanel.erasedStrings = [];
-					translationPanel.currentString = false;
+					translationPanel.disable();
 					translationPanel.drawList(translationPanel.currentFile);
 				}
 			}
