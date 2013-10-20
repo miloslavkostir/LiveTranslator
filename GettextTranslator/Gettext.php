@@ -288,9 +288,15 @@ class Gettext extends Nette\Object implements Nette\Localization\ITranslator
 		}
 
 		$key = is_array($message) ? $message[0] : $message;
-		$this->dictionary[$key]['original'] = (array) $message;
-		$this->dictionary[$key]['translation'] = (array) $string;
-		$this->dictionary[$key]['file'] = $file;
+
+		if ($string === FALSE){
+			unset($this->dictionary[$key]);
+		}
+		else {
+			$this->dictionary[$key]['original'] = (array) $message;
+			$this->dictionary[$key]['translation'] = (array) $string;
+			$this->dictionary[$key]['file'] = $file;
+		}
 	}
 
 
