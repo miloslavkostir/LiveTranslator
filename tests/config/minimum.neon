@@ -1,4 +1,5 @@
-services:
-	translatorStorage: DummyStorage
-translator:
-	defaultLang: en
+production:
+	services:
+		translatorStorage: DummyStorage
+	translator:
+		defaultLang: en

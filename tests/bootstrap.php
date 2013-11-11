@@ -9,6 +9,6 @@ if (!class_exists('Tester\Assert')){
 
 Tester\Environment::setup();
 
-$configurator = new Nette\Configurator;
+$configurator = new Nette\Config\Configurator;
 $configurator->setTempDirectory(__DIR__ . '/temp');
 return $configurator->createContainer();

@@ -2,7 +2,7 @@
 
 namespace LiveTranslator\DI;
 
-class Extension extends \Nette\DI\CompilerExtension
+class Extension extends \Nette\Config\CompilerExtension
 {
 
 	private $defaults = array(
