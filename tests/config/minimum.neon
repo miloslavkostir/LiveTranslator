@@ -1,0 +1,4 @@
+services:
+	translatorStorage: DummyStorage
+translator:
+	defaultLang: en

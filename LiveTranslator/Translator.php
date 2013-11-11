@@ -1,0 +1,333 @@
+<?php
+
+namespace LiveTranslator;
+
+
+class Translator extends \Nette\Object implements \Nette\Localization\ITranslator
+{
+
+	/** @var string plural-form meta */
+	public static $defaultPluralForms = 'plural=0;';
+
+	const NEW_STRINGS = 'LT-new';
+
+	/* @var string */
+	private $namespace;
+
+	/** @var  */
+	private $defaultLang;
+
+	/** @var string */
+	private $lang;
+
+	/** @var array */
+	private $availableLanguages = array();
+
+	/** @var ITranslatorStorage */
+	private $translatorStorage;
+
+	/** @var \Nette\Http\SessionSection */
+	private $session;
+
+
+
+	public function __construct(ITranslatorStorage $translatorStorage, \Nette\Http\Session $session)
+	{
+		$this->translatorStorage = $translatorStorage;
+		$this->session = $session;
+	}
+
+
+
+	public function getNamespace()
+	{
+		return $this->namespace;
+	}
+
+
+
+	public function getCurrentLang()
+	{
+		return $this->lang ? $this->lang : $this->defaultLang;
+	}
+
+
+
+	public function getDefaultLang()
+	{
+		return $this->defaultLang;
+	}
+
+
+
+	public function setNamespace($namespace)
+	{
+		if (!is_string($namespace) || empty($namespace)){
+			throw new TranslatorException('Namespace must be nonempty string.');
+		}
+		if ($this->namespace === $namespace){
+			return $this;
+		}
+
+		$this->namespace = $namespace;
+		$this->getSessionSection()->remove();
+		return $this;
+	}
+
+
+	/**
+	 * Set current language.
+	 * @param string $lang
+	 * @return self
+	 * @throws TranslatorException
+	 */
+	public function setCurrentLang($lang)
+	{
+		if (!is_string($lang) || empty($lang)) {
+			throw new TranslatorException('Language must be nonempty string.');
+		}
+		if ($this->lang === $lang) {
+			return $this;
+		}
+		if ($this->availableLanguages && !isset($this->availableLanguages[$lang])){
+			throw new TranslatorException("Language $lang is not available.");
+		}
+
+		$this->lang = $lang;
+		return $this;
+	}
+
+
+	/**
+	 * Set default language.
+	 * @param string $lang
+	 * @return self
+	 * @throws TranslatorException
+	 */
+	public function setDefaultLang($lang)
+	{
+		if (!is_string($lang) || empty($lang)) {
+			throw new TranslatorException('Language must be nonempty string.');
+		}
+		if ($this->defaultLang === $lang) {
+			return $this;
+		}
+		if ($this->availableLanguages && !isset($this->availableLanguages[$lang])){
+			throw new TranslatorException("Language $lang is not available.");
+		}
+
+		$this->defaultLang = $lang;
+		return $this;
+	}
+
+
+	/**
+	 * Give array with language name associated with plural forms meta such as:
+	 * plural=((n==1) ? 0 : (n>=2 && n<=4 ? 1 : 2));
+	 * @param array
+	 * @return self
+	 * @throws TranslatorException
+	 */
+	public function setAvailableLanguages(array $languages)
+	{
+		if (!is_array($languages) || empty($languages)){
+			throw new TranslatorException("Available languages must be nonempty array.");
+		}
+
+		foreach ($languages as $lang => $pluralForms){
+			if (!is_string($lang)){
+				$lang = $pluralForms;
+				$pluralForms = self::$defaultPluralForms;
+			}
+			$this->availableLanguages[$lang] = $pluralForms;
+		}
+
+		if ($this->lang && !isset($this->availableLanguages[$this->lang])){
+			throw new TranslatorException("Set language $this->lang is not available.");
+		}
+		if ($this->defaultLang && !isset($this->availableLanguages[$this->defaultLang])){
+			throw new TranslatorException("Default language $this->defaultLang is not available.");
+		}
+
+		return $this;
+	}
+
+
+	/**
+	 * Translates string.
+	 * Give original string or array of its original variants.
+	 * Rest of arguments are handed to sprintf() function.
+	 * @param string|array $string
+	 * @param int $count
+	 * @return string
+	 * @throws TranslatorException
+	 */
+	public function translate($string, $count = 1)
+	{
+		if (!$this->defaultLang) {
+			throw new TranslatorException('Default language must be defined. Use '.__CLASS__.'::setDefaultLang().');
+		}
+
+		$hasVariants = FALSE;
+		if (is_array($string)){
+			$hasVariants = TRUE;
+			$stringVariants = array_map('trim', array_values($string));
+			$string = trim((string) $string[0]);
+		}
+		else {
+			$string = trim((string) $string);
+			$plural = 0;
+			if (is_array($count)){
+				$args =  $count;
+			}
+			elseif (func_num_args() > 2){
+				$args = func_get_args();
+				unset($args[0]);
+				$args = array_values($args);
+			}
+			else {
+				$args = array($count);
+			}
+		}
+
+		$lang = $this->getCurrentLang();
+
+		if ($hasVariants){
+			if (is_array($count)){
+				$args = $count;
+			}
+			elseif (($argc = func_num_args()) > 2){
+				$args = func_get_args();
+				unset($args[0]);
+				$args = array_values($args);
+			}
+			if (isset($args)){
+				unset($count);
+				foreach ($args as $arg){
+					if (is_numeric($arg)){
+						$count = (int) $arg;
+						break;
+					}
+				}
+				if (!isset($count)) $count = 1;
+			}
+			else {
+				if (is_numeric($count)) $count = (int) $count;
+				else $count = 1;
+				$args = array($count);
+			}
+
+			$pluralForms = isset($this->availableLanguages[$lang]) ? $this->availableLanguages[$lang] : self::$defaultPluralForms;
+			if (!$pluralForms){
+				throw new TranslatorException("Empty plural-form meta for language $lang.");
+			}
+			$eval = preg_replace('/([a-z]+)/', '$$1', "n=$count;$pluralForms");
+			eval($eval);
+			if (!isset($plural)){
+				throw new TranslatorException("Cannot resolve plural form for $lang. Check plural-form meta $pluralForms.");
+			}
+		}
+
+		if ($lang === $this->defaultLang){
+			if ($hasVariants){
+				if (isset($stringVariants[$plural])) $translated = $stringVariants[$plural];
+				else $translated = end($stringVariants);
+			}
+			else {
+				$translated = $string;
+			}
+		}
+
+		else {
+			$translated = $this->translatorStorage->getTranslation($string, $lang, $plural, $this->namespace);
+			if (!is_string($translated) && !is_null($translated)){
+				throw new TranslatorException('ITranslatorStorage::getTranslation() must return string, '.gettype($translated).' returned.');
+			}
+
+			if (!$translated){
+				$newStrings = &$this->getNewStrings();
+				$newStrings[$string] = FALSE;
+
+				if ($hasVariants){
+					if (isset($stringVariants[$plural])) $translated = $stringVariants[$plural];
+					else $translated = end($stringVariants);
+				}
+				else $translated = $string;
+			}
+		}
+
+		if (FALSE !== strpos($translated, '%')){
+			$tmp = str_replace(array('%label', '%name', '%value'), array('#label', '#name', '#value'), $translated);
+			if (FALSE !== strpos($tmp, '%')){
+				$translated = vsprintf($tmp, $args);
+				$translated = str_replace(array('#label', '#name', '#value'), array('%label', '%name', '%value'), $translated);
+			}
+		}
+
+		return $translated;
+	}
+
+
+
+	/**
+	 * @return array
+	 * @throws TranslatorException
+	 */
+	public function getAllTranslations()
+	{
+		$strings = $this->translatorStorage->getAllTranslations($this->getCurrentLang(), $this->namespace);
+		if (!is_array($strings)){
+			throw new TranslatorException('ITranslatorStorage::getAllTranslations() must return array, '.gettype($strings).' returned.');
+		}
+
+		$newStrings = $this->getNewStrings();
+		return $strings + array(self::NEW_STRINGS => is_array($newStrings) ? $newStrings : array());
+	}
+
+
+
+	/**
+	 * Set translation string(s).
+	 * @param string $original
+	 * @param string|array|bool $translated array of variants or default variant or FALSE to remove translation.
+	 */
+	public function setTranslation($original, $translated)
+	{
+		$original = trim($original);
+		if ($translated === FALSE){
+			$this->translatorStorage->removeTranslation($original, $this->getCurrentLang(), $this->namespace);
+			return;
+		}
+
+		if (!is_array($translated)){
+			$translated = array($translated);
+		}
+		$translated = array_values($translated);
+		foreach ($translated as $variant => $string){
+			$this->translatorStorage->setTranslation($original, $string, $this->getCurrentLang(), $variant, $this->namespace);
+		}
+	}
+
+
+
+	protected function getSessionSection()
+	{
+		$ns = $this->namespace ?: 'default';
+		return $this->session->getSection("LT-$ns");
+	}
+
+
+
+	protected function &getNewStrings()
+	{
+		$section = $this->getSessionSection();
+		if (!isset($section->strings)){
+			$section->strings = array();
+		}
+		$strings = &$section->strings;
+		return $strings;
+	}
+}
+
+
+class TranslatorException extends \Exception {}
