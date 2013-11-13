@@ -17,9 +17,9 @@ class NamespaceStorage implements \LiveTranslator\ITranslatorStorage
 		return $this->translations[$ns][$original];
 	}
 
-	function getAllTranslations($l, $n = NULL)
+	function getAllTranslations($l, $ns = NULL)
 	{
-		return $this->translations;
+		return $this->translations[$ns];
 	}
 
 	function setTranslation($o, $t, $l, $variant = 0, $n = NULL)

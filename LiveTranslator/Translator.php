@@ -1,5 +1,9 @@
 <?php
 
+// todo co je to {_p makro o kterym se mluvilo na fóru?
+// todo kde to neni bezpodmínečně nutný nedělat kontrolu vstupu? (metody setNěco)
+// todo phpDocy a @property-read
+
 namespace LiveTranslator;
 
 
@@ -7,9 +11,7 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 {
 
 	/** @var string plural-form meta */
-	public static $defaultPluralForms = 'plural=0;';
-
-	const NEW_STRINGS = 'LT-new';
+	public static $defaultPluralForms = 'nplurals=1; plural=0;';
 
 	/* @var string */
 	private $namespace;
@@ -23,18 +25,28 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 	/** @var array */
 	private $availableLanguages = array();
 
+	/** @var string */
+	private $presenterLanguageParam = array();
+
 	/** @var ITranslatorStorage */
 	private $translatorStorage;
 
 	/** @var \Nette\Http\SessionSection */
 	private $session;
 
+	/** @var \Nette\Application\Application */
+	private $application;
 
 
-	public function __construct(ITranslatorStorage $translatorStorage, \Nette\Http\Session $session)
-	{
+
+	public function __construct(
+		$defaultLang, ITranslatorStorage $translatorStorage,
+		\Nette\Http\Session $session, \Nette\Application\Application $application
+	){
+		$this->setDefaultLang($defaultLang);
 		$this->translatorStorage = $translatorStorage;
 		$this->session = $session;
+		$this->application = $application;
 	}
 
 
@@ -48,7 +60,15 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 
 	public function getCurrentLang()
 	{
-		return $this->lang ? $this->lang : $this->defaultLang;
+		if ($this->lang) return $this->lang;
+		if ($this->presenterLanguageParam){
+			$presenter = $this->application->presenter;
+			if (isset($presenter->{$this->presenterLanguageParam})){
+				$this->setCurrentLang($presenter->{$this->presenterLanguageParam});
+				return $this->lang;
+			}
+		}
+		return $this->lang = $this->defaultLang;
 	}
 
 
@@ -60,19 +80,61 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 
 
 
+	public function isCurrentLangDefault()
+	{
+		return $this->getCurrentLang() === $this->defaultLang;
+	}
+
+
+
+	public function getAvailableLanguages()
+	{
+		return $this->availableLanguages ? array_keys($this->availableLanguages) : NULL;
+	}
+
+
+
+	public function getVariantsCount($lang = NULL)
+	{
+		list($nplurals) = $this->evalPluralForms(1, $lang);
+		return $nplurals;
+	}
+
+
+
+	public function getVariant($count, $lang = NULL)
+	{
+		list(, $plural) = $this->evalPluralForms($count, $lang);
+		return $plural;
+	}
+
+
+
+	public function getPresenterLanguageParam()
+	{
+		return $this->presenterLanguageParam;
+	}
+
+
+
+	public function getPresenterLink($switchLang)
+	{
+		if (!$this->presenterLanguageParam) return NULL;
+		return $this->application->presenter->link('this', array($this->presenterLanguageParam => $switchLang));
+	}
+
+
+
 	public function setNamespace($namespace)
 	{
 		if (!is_string($namespace) || empty($namespace)){
 			throw new TranslatorException('Namespace must be nonempty string.');
 		}
-		if ($this->namespace === $namespace){
-			return $this;
-		}
 
 		$this->namespace = $namespace;
-		$this->getSessionSection()->remove();
 		return $this;
 	}
+
 
 
 	/**
@@ -98,6 +160,7 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 	}
 
 
+
 	/**
 	 * Set default language.
 	 * @param string $lang
@@ -121,9 +184,10 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 	}
 
 
+
 	/**
 	 * Give array with language name associated with plural forms meta such as:
-	 * plural=((n==1) ? 0 : (n>=2 && n<=4 ? 1 : 2));
+	 * nplurals=3; plural=((n==1) ? 0 : (n>=2 && n<=4 ? 1 : 2));
 	 * @param array
 	 * @return self
 	 * @throws TranslatorException
@@ -145,12 +209,20 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 		if ($this->lang && !isset($this->availableLanguages[$this->lang])){
 			throw new TranslatorException("Set language $this->lang is not available.");
 		}
-		if ($this->defaultLang && !isset($this->availableLanguages[$this->defaultLang])){
+		if (!isset($this->availableLanguages[$this->defaultLang])){
 			throw new TranslatorException("Default language $this->defaultLang is not available.");
 		}
 
 		return $this;
 	}
+
+
+
+	public function setPresenterLanguageParam($paramName)
+	{
+		$this->presenterLanguageParam = $paramName;
+	}
+
 
 
 	/**
@@ -164,10 +236,6 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 	 */
 	public function translate($string, $count = 1)
 	{
-		if (!$this->defaultLang) {
-			throw new TranslatorException('Default language must be defined. Use '.__CLASS__.'::setDefaultLang().');
-		}
-
 		$hasVariants = FALSE;
 		if (is_array($string)){
 			$hasVariants = TRUE;
@@ -189,8 +257,6 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 				$args = array($count);
 			}
 		}
-
-		$lang = $this->getCurrentLang();
 
 		if ($hasVariants){
 			if (is_array($count)){
@@ -217,16 +283,10 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 				$args = array($count);
 			}
 
-			$pluralForms = isset($this->availableLanguages[$lang]) ? $this->availableLanguages[$lang] : self::$defaultPluralForms;
-			if (!$pluralForms){
-				throw new TranslatorException("Empty plural-form meta for language $lang.");
-			}
-			$eval = preg_replace('/([a-z]+)/', '$$1', "n=$count;$pluralForms");
-			eval($eval);
-			if (!isset($plural)){
-				throw new TranslatorException("Cannot resolve plural form for $lang. Check plural-form meta $pluralForms.");
-			}
+			$plural = $this->getVariant($count);
 		}
+
+		$lang = $this->getCurrentLang();
 
 		if ($lang === $this->defaultLang){
 			if ($hasVariants){
@@ -273,7 +333,7 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 	 * @return array
 	 * @throws TranslatorException
 	 */
-	public function getAllTranslations()
+	public function getAllStrings()
 	{
 		$strings = $this->translatorStorage->getAllTranslations($this->getCurrentLang(), $this->namespace);
 		if (!is_array($strings)){
@@ -281,7 +341,7 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 		}
 
 		$newStrings = $this->getNewStrings();
-		return $strings + array(self::NEW_STRINGS => is_array($newStrings) ? $newStrings : array());
+		return $strings + (is_array($newStrings) ? $newStrings : array());
 	}
 
 
@@ -293,9 +353,15 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 	 */
 	public function setTranslation($original, $translated)
 	{
+		$lang = $this->getCurrentLang();
+		if ($lang === $this->defaultLang){
+			return;
+		}
 		$original = trim($original);
 		if ($translated === FALSE){
-			$this->translatorStorage->removeTranslation($original, $this->getCurrentLang(), $this->namespace);
+			$newStrings = &$this->getNewStrings();
+			$this->translatorStorage->removeTranslation($original, $lang, $this->namespace);
+			unset($newStrings[$original]);
 			return;
 		}
 
@@ -304,7 +370,7 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 		}
 		$translated = array_values($translated);
 		foreach ($translated as $variant => $string){
-			$this->translatorStorage->setTranslation($original, $string, $this->getCurrentLang(), $variant, $this->namespace);
+			$this->translatorStorage->setTranslation($original, $string, $lang, $variant, $this->namespace);
 		}
 	}
 
@@ -320,12 +386,41 @@ class Translator extends \Nette\Object implements \Nette\Localization\ITranslato
 
 	protected function &getNewStrings()
 	{
+		// todo mohlo by to mít jednu section a ns by byly jednotlivý property zde
 		$section = $this->getSessionSection();
 		if (!isset($section->strings)){
 			$section->strings = array();
 		}
 		$strings = &$section->strings;
 		return $strings;
+	}
+
+
+
+	private function evalPluralForms($count = 1, $lang = NULL)
+	{
+		$lang = $lang ?: $this->getCurrentLang();
+		$pluralForms = isset($this->availableLanguages[$lang]) ? $this->availableLanguages[$lang] : self::$defaultPluralForms;
+		if (!$pluralForms){
+			throw new TranslatorException("Empty plural-form meta for language $lang.");
+		}
+
+		$eval = preg_replace('/([a-z]+)/', '$$1', "n=$count;$pluralForms");
+		eval($eval);
+
+		if (!isset($nplurals)){
+			throw new TranslatorException("Cannot resolve nplurals form count for $lang. Check plural-form meta $pluralForms.");
+		}
+		if (!isset($plural)){
+			throw new TranslatorException("Cannot resolve plural form for $lang. Check plural-form meta $pluralForms.");
+		}
+		if (($plural +1) > $nplurals){
+			throw new TranslatorException(
+				"Plural-form parse error for $lang. Plural form cannot exceed ".($nplurals-1)
+			  . " regarding to nplural=$nplurals, but $plural returned. Check plural-form meta $pluralForms.");
+		}
+
+		return array($nplurals, $plural);
 	}
 }
 

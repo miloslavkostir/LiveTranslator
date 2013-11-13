@@ -7,7 +7,7 @@ interface ITranslatorStorage
 
     /**
      * Return translated string.
-     * For nonexistent variant return default variant.
+     * For nonexistent variant return lower variant.
      * Return NULL if translation does not exist.
      * @param string $original
      * @param string $lang

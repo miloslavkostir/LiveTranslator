@@ -6,19 +6,16 @@ $container = require __DIR__ . '/bootstrap.php';
 require __DIR__.'/storage/simple.php';
 
 use \LiveTranslator\Translator as Tr;
-$trans = new Tr(new SimpleStorage, $container->session);
+$trans = new Tr('en', new SimpleStorage, $container->session);
 
-$trans->setDefaultLang('en')
-	->setCurrentLang('cz')
-;
+$trans->setCurrentLang('cz');
 
-$all = $trans->getAllTranslations();
+$all = $trans->getAllStrings();
 
-Assert::equal(7, count($all));
-Assert::equal(0, count($all[Tr::NEW_STRINGS]));
+Assert::equal(6, count($all));
 
 $trans->translate('new string');
-$all = $trans->getAllTranslations();
+$all = $trans->getAllStrings();
 
-Assert::equal(1, count($all[Tr::NEW_STRINGS]));
-Assert::equal('new string', key($all[Tr::NEW_STRINGS]));
+Assert::equal(7, count($all));
+Assert::true(array_key_exists('new string', $all));

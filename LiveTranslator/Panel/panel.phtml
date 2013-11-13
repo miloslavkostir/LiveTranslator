@@ -1,16 +1,16 @@
-<style type="text/css">
+﻿<style type="text/css">
 #TranslationPanel {
 	min-width: 600px;
 }
 
 #TranslationPanel .nette-inner {
 	max-width: 800px !important;
-	height: <?php echo $this->height . 'px'; ?>;
+	height: {!$panel->height}px;
 	padding: 1px;
 }
 
 #TranslationPanel-sidebar {
-	width: <?php if ($this->layout == 'vertical') echo '40%'; else echo '30%'; ?>;
+	width: {!$panel->layout == 'vertical' ? '40%' : '30%'};
 	height: 100%;
 	overflow: hidden;
 	float: left;
@@ -18,7 +18,7 @@
 }
 
 #TranslationPanel-strings {
-	height: <?php echo ($this->height - 60) . 'px'; ?>;
+	height: {!$panel->height - 38}px;
 	overflow: auto;
 	border: 1px solid #AAA;
 }
@@ -32,13 +32,6 @@
 
 #TranslationPanel-filterBox {
 	width: 80%;
-}
-
-#TranslationPanel-fileSelectBox {
-	padding: 3px;
-	border: 1px solid #AAA;
-	margin-bottom: 2px;
-	width: 100%;
 }
 
 #TranslationPanel-filterReset {
@@ -91,19 +84,19 @@
 }
 
 #TranslationPanel-editor {
-	width: <?php if ($this->layout == 'vertical') echo '58%'; else echo '68%'; ?>;
+	width: {!$panel->layout == 'vertical' ? '58%' : '68%'};
 	height: 100%;
 	margin: -1px -1px -1px 0;
 	float: right;
 	position: relative;
 }
 
-<?php if ($this->layout == 'horizontal') { ?>
+{if $panel->layout == 'horizontal'}
 #TranslationPanel div.TranslationPanel-stringVariant {
 	width: 50%;
 	float: left;
 }
-<?php } ?>
+{/if}
 
 #TranslationPanel div.TranslationPanel-stringVariant sup {
 	font-size: 60%;
@@ -120,6 +113,10 @@ div.TranslationPanel-stringVariant textarea {
 	background-color: #fff;
 	border: 1px solid #bbb !important;
 	margin: 0.5em 0 !important;
+}
+
+div.TranslationPanel-stringVariant textarea.disabled {
+	background-color: #f9f9f9 !important;
 }
 
 #TranslationPanel-tools {
@@ -163,7 +160,7 @@ div.TranslationPanel-stringVariant textarea {
 
 #TranslationPanel-status textarea {
 	background-color: #fff;
-	width: <?php if ($this->layout == 'vertical') echo '340px'; else echo '532px'; ?>;
+	width: {!$panel->layout == 'vertical' ? '340px' : '532px'};
 	height: 40px;
 }
 
@@ -244,14 +241,12 @@ function clone(obj){
 
 
 var translationPanel = {
-	strings: <?php echo json_encode($strings); ?>,
-	files: <?php echo json_encode($files); ?>,
-	variants: <?php echo json_encode($translator->getVariantsCount()); ?>,
+	strings: {!json_encode($translator->getAllStrings())},
+	variants: {$translator->getVariantsCount()},
 
 	updatedStrings: [],
 	erasedStrings: [],
 	currentString: false,
-	currentFile: false,
 	filter: '',
 
 	listElements: [],
@@ -265,8 +260,7 @@ var translationPanel = {
 		this.icon = document.getElementById('TranslationPanel-icon');
 		this.iconNormal = document.getElementById('TranslationPanel-icon').src;
 
-		this.currentFile = '<?php echo $activeFile ?>';
-		this.drawList('<?php echo $activeFile ?>');
+		this.drawList();
 
 		for (var i = 0; i < this.variants; i++) {
 			var textarea = document.getElementById('TranslationPanel-stringVariant_' + i);
@@ -280,10 +274,7 @@ var translationPanel = {
 			};
 		}
 
-		var selectBox = document.getElementById('TranslationPanel-fileSelectBox');
-		selectBox.onchange = function() {
-			translationPanel.changeFile(this.options[this.selectedIndex].value);
-		};
+		this.disable();
 
 		var button = document.getElementById('TranslationPanel-save');
 		button.disabled = true;
@@ -301,26 +292,19 @@ var translationPanel = {
 		var onChange = function () {
 			translationPanel.filter = filterBox.value;
 			filterReset.style.visibility = (translationPanel.filter ? 'visible' : 'hidden');
-			translationPanel.drawList(translationPanel.currentFile);
+			translationPanel.drawList();
 		};
 		filterBox.onkeyup = filterBox.onchange = onChange;
 		filterReset.onclick = function () {
 			translationPanel.filter = filterBox.value = '';
 			filterReset.style.visibility = 'hidden';
-			translationPanel.drawList(translationPanel.currentFile);
+			translationPanel.drawList();
 		};
 
 		translationPanel.setStatus();
 	},
 
-	changeFile: function(file) {
-		if(in_array(file, this.files)) {
-			this.currentFile = file;
-			this.drawList(file);
-		}
-	},
-
-	drawList: function (file) {
+	drawList: function () {
 		var list = document.getElementById('TranslationPanel-strings');
 		list.innerHTML = '';
 		this.listElements = [];
@@ -328,17 +312,11 @@ var translationPanel = {
 		var strings = [{}, {}];
 		var untranslated = 0;
 
-
-		var currentStrings = clone(this.strings['newStrings']);
-		for(attrname in this.strings[file]) {
-			currentStrings[attrname] = this.strings[file][attrname];
-		}
-
-		for (var i in currentStrings) {
-			var translated = Boolean(currentStrings[i]);
-			if (translated && (typeof(currentStrings[i]) == 'object' && currentStrings[i] instanceof Array) && currentStrings[i].length > 1) {
+		for (var i in this.strings) {
+			var translated = Boolean(this.strings[i]);
+			if (translated && (typeof(this.strings[i]) == 'object' && this.strings[i] instanceof Array) && this.strings[i].length > 1) {
 				for (var plural = 0; plural < this.variants; plural++) {
-					if (!currentStrings[i][plural]) {
+					if (!this.strings[i][plural]) {
 						translated = false;
 						break;
 					}
@@ -346,9 +324,9 @@ var translationPanel = {
 			}
 
 			if (translated)
-				strings[1][i] = currentStrings[i];
+				strings[1][i] = this.strings[i];
 			else {
-				strings[0][i] = currentStrings[i];
+				strings[0][i] = this.strings[i];
 				untranslated++;
 			}
 		}
@@ -370,13 +348,13 @@ var translationPanel = {
 
 		for (var translated in strings) {
 			for (var i in strings[translated]) {
-				if (!this.matchesFilter(i, currentStrings[i]) || currentStrings[i] === undefined || typeof(currentStrings[i]) == 'function' )
+				if (!this.matchesFilter(i, this.strings[i]) || this.strings[i] === undefined || typeof(this.strings[i]) == 'function' )
 					continue;
 
 				var div = document.createElement('div');
 				div.className = 'TranslationPanel-string';
 				var label;
-				var stringData = currentStrings[i];
+				var stringData = this.strings[i];
 
 				if (!stringData) {
 					label = i;
@@ -438,7 +416,7 @@ var translationPanel = {
 	edit: function (anchor) {
 		var string = anchor.title;
 
-		this.fillIn(this.strings[this.currentFile][string]);
+		this.fillIn(this.strings[string]);
 		this.currentString = string;
 		document.getElementById('TranslationPanel-stringVariant_0').focus();
 
@@ -459,8 +437,9 @@ var translationPanel = {
 		div.className += ' erased-string';
 		div.removeChild(span);
 		a.onclick = null;
-		if (this.currentString == a.title)
-			this.currentString = false;
+		if (this.currentString == a.title){
+			this.disable();
+		}
 
 		document.getElementById('TranslationPanel-save').disabled = false;
 		document.getElementById('TranslationPanel-save').className = 'save';
@@ -472,10 +451,23 @@ var translationPanel = {
 
 		for (var i = 0; i < this.variants; i++) {
 			var textarea = document.getElementById('TranslationPanel-stringVariant_' + i);
+			textarea.disabled = false;
+			textarea.className = '';
+
 			if (stringData[i])
 				textarea.value = stringData[i];
 			else
 				textarea.value = '';
+		}
+	},
+
+	disable: function () {
+		this.currentString = false;
+		for (var i = 0; i < this.variants; i++) {
+			var textarea = document.getElementById('TranslationPanel-stringVariant_' + i);
+			textarea.value = '';
+			textarea.disabled = true;
+			textarea.className = 'disabled';
 		}
 	},
 
@@ -493,10 +485,7 @@ var translationPanel = {
 			else if (stringData.length == 0)
 				stringData = false;
 
-			this.strings[this.currentFile][this.currentString] = stringData;
-			if(typeof(this.strings['newStrings'][this.currentString]) != 'undefined') {
-				delete this.strings['newStrings'][this.currentString];
-			}
+			this.strings[this.currentString] = stringData;
 			this.updatedStrings.push(this.currentString);
 
 			var el = this.listElements[this.currentString];
@@ -513,11 +502,11 @@ var translationPanel = {
 
 	commit: function () {
 		var data = {
-			'X-GettextTranslator-Lang': '<?php echo $translator->lang ?>',
-			'X-GettextTranslator-File': this.currentFile
+			{$panel::LANGUAGE_KEY}: {$lang},
+			{$panel::NAMESPACE_KEY}: {$translator->namespace},
 		};
 		for (var i in this.updatedStrings) {
-			data[this.updatedStrings[i]] = this.strings[this.currentFile][this.updatedStrings[i]];
+			data[this.updatedStrings[i]] = this.strings[this.updatedStrings[i]];
 		}
 		for (var i in this.erasedStrings) {
 			data[this.erasedStrings[i]] = false;
@@ -528,26 +517,26 @@ var translationPanel = {
 			if (xmlHttp.readyState == 4) {
 				if (xmlHttp.status == 200) {
 					for (var i in translationPanel.erasedStrings) {
-						delete translationPanel.strings[translationPanel.currentFile][translationPanel.erasedStrings[i]];
+						delete translationPanel.strings[translationPanel.erasedStrings[i]];
 					}
 					translationPanel.updatedStrings = [];
 					translationPanel.erasedStrings = [];
-					translationPanel.currentString = false;
+					translationPanel.disable();
 					translationPanel.setStatus('Sucessfuly saved.');
-					translationPanel.drawList(translationPanel.currentFile);
+					translationPanel.drawList();
 				} else {
 					translationPanel.setStatus('Unexpected error.');
 					var win = window.open('', 'Error');
 					win.document.write(xmlHttp.responseText);
 					translationPanel.updatedStrings = [];
 					translationPanel.erasedStrings = [];
-					translationPanel.currentString = false;
-					translationPanel.drawList(translationPanel.currentFile);
+					translationPanel.disable();
+					translationPanel.drawList();
 				}
 			}
-		}
-		xmlHttp.open("POST", <?php echo json_encode($this->application->getPresenter()->link('this')); ?>, true);
-		xmlHttp.setRequestHeader('<?php echo $this->xhrHeader ?>', 'devel');
+		};
+		xmlHttp.open("POST", window.location, true);
+		xmlHttp.setRequestHeader({$panel::XHR_HEADER}, 'devel');
 		xmlHttp.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		xmlHttp.send(JSON.stringify(data));
 	},
@@ -579,17 +568,10 @@ var translationPanel = {
 </script>
 
 <div id="TranslationPanel">
-	<h1>Translations (<?php echo strtoupper($translator->lang) ?>)</h1>
+	<h1>Translations ({$lang|upper})</h1>
 
 	<div class="nette-inner">
 		<div id="TranslationPanel-sidebar">
-			<div id="TranslationPanel-fileSelect">
-				<select id="TranslationPanel-fileSelectBox">
-					<?php foreach($files as $identifier) { ?>
-					<option value="<?php echo $identifier ?>" <?php if($identifier === $activeFile): ?>selected="selected"<?php endif; ?>><?php echo $identifier ?></option>
-					<?php } ?>
-				</select>
-			</div>
 			<div id="TranslationPanel-filter">
 				<input type="text" class="text" id="TranslationPanel-filterBox" />
 				<div id="TranslationPanel-filterReset"></div>
@@ -599,12 +581,11 @@ var translationPanel = {
 		</div>
 
 		<div id="TranslationPanel-editor">
-			<?php for ($i = 0; $i < $translator->getVariantsCount(); ++$i) { ?>
-				<div class="TranslationPanel-stringVariant">
-					<label for="TranslationPanel-stringVariant_<?php echo $i; ?>"><?php echo $i > 0 ? $i . '<sup>' . $this->ordinalSuffix($i) . '</sup> plural': 'Singular'; ?>:</label>
-					<textarea id="TranslationPanel-stringVariant_<?php echo $i; ?>" rows="4" cols="40"></textarea>
-				</div>
-			<?php } ?>
+			{var $variants = range(0, $translator->getVariantsCount() -1)}
+			<div class="TranslationPanel-stringVariant" n:foreach="$variants as $i => $variant">
+				<label for="TranslationPanel-stringVariant_{$i}">{if $i > 0}{$i}<sup>{$i|ordinal}</sup> plural{else}Singular{/if}:</label>
+				<textarea id="TranslationPanel-stringVariant_{$i}" rows="4" cols="40"></textarea>
+			</div>
 			<div id="TranslationPanel-tools">
 				<span id="TranslationPanel-status">Initializing&hellip;</span>
 				<input type="button" value="Save" class="save" id="TranslationPanel-save" />

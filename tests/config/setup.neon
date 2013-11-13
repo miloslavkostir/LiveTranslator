@@ -1,0 +1,8 @@
+production:
+	services:
+		translatorStorage: DummyStorage
+		translator:
+			class: LiveTranslator\Translator(en)
+			setup:
+				- setAvailableLanguages([en, cz, de])
+				- setNamespace(front)

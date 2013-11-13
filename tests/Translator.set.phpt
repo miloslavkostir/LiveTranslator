@@ -5,13 +5,12 @@ $container = require __DIR__ . '/bootstrap.php';
 
 require __DIR__.'/storage/simple.php';
 
-$trans = new \LiveTranslator\Translator(new SimpleStorage, $container->session);
+$trans = new \LiveTranslator\Translator('en', new SimpleStorage, $container->session);
 
-$trans->setDefaultLang('en')
-	->setCurrentLang('cz')
+$trans->setCurrentLang('cz')
 	->setAvailableLanguages(array(
 		'en',
-		'cz' => 'plural=((n==1) ? 0 : (n>=2 && n<=4 ? 1 : 2));'
+		'cz' => 'nplurals=3; plural=((n==1) ? 0 : (n>=2 && n<=4 ? 1 : 2));'
 	))
 ;
 
