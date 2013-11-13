@@ -15,19 +15,15 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 	/** @var string */
 	private $translationTable;
 
-	/** @var bool */
-	private $namespaced;
-
 
 
 	/**
 	 * @param string $defaultTableName name of table with original texts
 	 * @param string $translationTableName name of table with translated texts
 	 * @param \Nette\Database\Connection $db
-	 * @param bool $namespaced set TRUE when using namespaced variant of table
 	 * @throws \Nette\InvalidArgumentException
 	 */
-	public function __construct($defaultTableName, $translationTableName, \Nette\Database\Connection $db, $namespaced = FALSE)
+	public function __construct($defaultTableName, $translationTableName, \Nette\Database\Connection $db)
 	{
 		$this->db = $db;
 		if (!preg_match('/^[a-z_]\w*$/i', $defaultTableName)){
@@ -38,7 +34,6 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 		}
 		$this->defaultTable = $defaultTableName;
 		$this->translationTable = $translationTableName;
-		$this->namespaced = $namespaced;
 	}
 
 
@@ -51,14 +46,9 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 			JOIN `$this->translationTable` t ON d.`id` = t.`text_id`
 			WHERE ";
 
-		if ($this->namespaced){
-			if (is_null($namespace)){
-				$arg[0] .= 'd.`ns` IS NULL AND ';
-			}
-			else {
-				$arg[0] .= 'd.`ns` = ? AND ';
-				$arg[] = $namespace;
-			}
+		if ($namespace){
+			$arg[0] .= 'd.`ns` = ? AND ';
+			$arg[] = $namespace;
 		}
 
 		$arg[0] .= 'd.`text` = ? AND t.`lang` = ? AND t.`variant` <= ? ORDER BY t.`variant` DESC';
@@ -81,14 +71,9 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 			JOIN `$this->translationTable` t ON d.`id` = t.`text_id`
 			WHERE ";
 
-		if ($this->namespaced){
-			if (is_null($namespace)){
-				$arg[0] .= 'd.`ns` IS NULL AND ';
-			}
-			else {
-				$arg[0] .= 'd.`ns` = ? AND ';
-				$arg[] = $namespace;
-			}
+		if ($namespace){
+			$arg[0] .= 'd.`ns` = ? AND ';
+			$arg[] = $namespace;
 		}
 
 		$arg[0] .= "t.`lang` = ?";
@@ -114,14 +99,9 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 
 		$arg[0] = "SELECT `id` FROM `$this->defaultTable` WHERE ";
 
-		if ($this->namespaced){
-			if (is_null($namespace)){
-				$arg[0] .= '`ns` IS NULL AND ';
-			}
-			else {
-				$arg[0] .= '`ns` = ? AND ';
-				$arg[] = $namespace;
-			}
+		if ($namespace){
+			$arg[0] .= '`ns` = ? AND ';
+			$arg[] = $namespace;
 		}
 
 		$arg[0] .= "`text` = ?";
@@ -144,7 +124,7 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 		else {
 			if (!$textId){
 				$data = array('text' => $original);
-				if ($this->namespaced) $data['ns'] = $namespace;
+				if ($namespace) $data['ns'] = $namespace;
 				$row = $this->db->table($this->defaultTable)->insert($data);
 				$textId = $row->id;
 			}
@@ -168,14 +148,9 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 			JOIN `$this->translationTable` t ON d.`id` = t.`text_id`
 			WHERE ";
 
-		if ($this->namespaced){
-			if (is_null($namespace)){
-				$arg[0] .= 'd.`ns` IS NULL AND ';
-			}
-			else {
-				$arg[0] .= 'd.`ns` = ? AND ';
-				$arg[] = $namespace;
-			}
+		if ($namespace){
+			$arg[0] .= 'd.`ns` = ? AND ';
+			$arg[] = $namespace;
 		}
 
 		$arg[0] .= "d.`text` = ? AND t.`lang` = ?";
