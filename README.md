@@ -87,7 +87,7 @@ Inject LiveTranslator, set current language and give translator to template:
 class BasePresenter extends \Nette\Application\UI\Presenter
 {
     /** @persistent */
-    public $lang;
+    public $lang = 'en';
 
 	protected $translator;
 
