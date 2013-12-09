@@ -6,10 +6,10 @@ $container = require __DIR__ . '/bootstrap.php';
 require __DIR__.'/storage/dummy.php';
 
 Assert::exception(function() use($container){
-	new \LiveTranslator\Translator('', new DummyStorage, $container->session);
+	new \LiveTranslator\Translator('', new DummyStorage, $container->session, $container->application);
 }, 'LiveTranslator\TranslatorException');
 
-$trans = new \LiveTranslator\Translator('en', new DummyStorage, $container->session);
+$trans = new \LiveTranslator\Translator('en', new DummyStorage, $container->session, $container->application);
 
 $trans->setAvailableLanguages(array(
 	'en', 'cz'
@@ -23,7 +23,7 @@ Assert::exception(function() use($trans){
 	$trans->setDefaultLang('de');
 }, 'LiveTranslator\TranslatorException');
 
-$trans = new \LiveTranslator\Translator('de', new DummyStorage(), $container->session);
+$trans = new \LiveTranslator\Translator('de', new DummyStorage(), $container->session, $container->application);
 
 Assert::exception(function() use($trans){
 	$trans->setAvailableLanguages(array(
@@ -31,7 +31,7 @@ Assert::exception(function() use($trans){
 	));
 }, 'LiveTranslator\TranslatorException');
 
-$trans = new \LiveTranslator\Translator('en', new DummyStorage(), $container->session);
+$trans = new \LiveTranslator\Translator('en', new DummyStorage(), $container->session, $container->application);
 
 $trans->setCurrentLang('de');
 

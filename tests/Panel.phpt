@@ -5,9 +5,8 @@ $container = require __DIR__ . '/bootstrap.php';
 
 require __DIR__.'/storage/simple.php';
 
-$panel = new \LiveTranslator\Panel(
-	new \LiveTranslator\Translator('en', new SimpleStorage, $container->session), $container->httpRequest
-);
+$trans = new \LiveTranslator\Translator('en', new SimpleStorage, $container->session, $container->application);
+$panel = new \LiveTranslator\Panel($trans, $container->httpRequest);
 
 Assert::type('LiveTranslator\Translator', $panel->getTranslator());
 $panel->setLayout('horizontal')
@@ -20,4 +19,7 @@ Assert::exception(function() use($panel){
 }, 'Nette\InvalidArgumentException');
 
 Assert::true(is_string($panel->getTab()));
+Assert::true(is_string($panel->getPanel()));
+
+$trans->setCurrentLang('de');
 Assert::true(is_string($panel->getPanel()));
