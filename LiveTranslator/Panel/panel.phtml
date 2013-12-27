@@ -99,12 +99,13 @@
 	position: relative;
 }
 
-{if $panel->layout == 'horizontal'}
 #TranslationPanel div.TranslationPanel-stringVariant {
+	height: 127px;
+{if $panel->layout == 'horizontal'}
 	width: 50%;
 	float: left;
-}
 {/if}
+}
 
 #TranslationPanel div.TranslationPanel-stringVariant sup {
 	font-size: 60%;
