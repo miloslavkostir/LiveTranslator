@@ -1,7 +1,7 @@
 <?php
 
 use Tester\Assert;
-$container = require __DIR__ . '/bootstrap.php';
+$container = require __DIR__ . '/bootstrap.application.php';
 
 require __DIR__.'/storage/language.php';
 

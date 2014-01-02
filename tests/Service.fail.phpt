@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__.'/bootstrap.service.php';
+require __DIR__.'/bootstrap.php';
 
 use Tester\Assert;
 require __DIR__.'/storage/dummy.php';
