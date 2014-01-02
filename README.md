@@ -160,7 +160,7 @@ That means that `$translator->translate('Call me %s.', 'Johan')` results in "Cal
 It can be used in latte too.
 
 
-### Translate plurals (1 apple => 2 apples)
+### Translate plurals (1 apple → 2 apples)
 
 You can say what plural-form each language uses via `setAvailableLanguages`, this way:
 ```
