@@ -26,6 +26,7 @@ class File implements \LiveTranslator\ITranslatorStorage
 	public function __construct($storageDir)
 	{
 		$this->storageDir = realpath($storageDir);
+
 		if (FALSE === $this->storageDir) {
 			throw new \Nette\DirectoryNotFoundException("Directory $storageDir was not found.");
 		}
@@ -45,6 +46,7 @@ class File implements \LiveTranslator\ITranslatorStorage
 		if (FALSE !== $changed) {
 			return $changed;
 		}
+
 		$handler = $this->getFileHandler($lang, $namespace);
 		$initPos = ftell($handler);
 		for ($i = 0; $i < 2; ++$i) {
@@ -81,6 +83,7 @@ class File implements \LiveTranslator\ITranslatorStorage
 		$handler = $this->getFileHandler($lang, $namespace);
 		rewind($handler);
 		$translations = array();
+
 		while ($translation = fgets($handler)) {
 			$translation = trim($translation);
 			$translation = unserialize($translation);
@@ -123,10 +126,12 @@ class File implements \LiveTranslator\ITranslatorStorage
 				list($lang, $namespace) = unserialize($meta);
 				$filePath = "$this->storageDir/" . $this->getFilename($lang, $namespace);
 				$data = file_exists($filePath) ? file($filePath) : array();
+
 				foreach ($data as $i => &$row) {
 					$translation = trim($row);
 					$translation = unserialize($translation);
 					$index = array_search($translation[0], $originals);
+
 					if (FALSE !== $index) {
 						unset($originals[$index]);
 						if (FALSE === $this->newTranslations[$translation[0]]) {
@@ -138,11 +143,13 @@ class File implements \LiveTranslator\ITranslatorStorage
 						}
 					}
 				}
+
 				foreach ($originals as $original) {
 					$new = array($original) + $this->newTranslations[$original];
 					ksort($new);
 					$data[] = serialize($new) . "\n";
 				}
+
 				$handler = $this->getFileHandler($lang, $namespace);
 				ftruncate($handler, 0);
 				rewind($handler);
@@ -150,6 +157,7 @@ class File implements \LiveTranslator\ITranslatorStorage
 				fwrite($handler, $content, strlen($content));
 			}
 		}
+
 		foreach ($this->handlers as $handler) {
 			fclose($handler);
 		}
@@ -164,15 +172,19 @@ class File implements \LiveTranslator\ITranslatorStorage
 	protected function getFileHandler($lang, $namespace = NULL)
 	{
 		$file = $this->getFilename($lang, $namespace);
+
 		if (isset($this->handlers[$file])) {
 			return $this->handlers[$file];
 		}
+
 		$filePath = "$this->storageDir\\$file";
+
 		if (file_exists($filePath)) {
 			$handler = fopen($filePath, 'r+');
 		} else {
 			$handler = fopen($filePath, 'w+');;
 		}
+
 		return $this->handlers[$file] = $handler;
 	}
 
@@ -197,10 +209,12 @@ class File implements \LiveTranslator\ITranslatorStorage
 			}
 			$new = array($variant +1 => $new);
 		}
+
 		$meta = serialize(array($lang, $namespace));
 		if (!isset($this->metaData[$meta])) {
 			$this->metaData[$meta] = array();
 		}
+
 		$this->metaData[$meta][] = $original;
 		$this->newTranslations[$original] = $new;
 	}
@@ -215,12 +229,14 @@ class File implements \LiveTranslator\ITranslatorStorage
 	{
 		if (array_key_exists($original, $this->newTranslations)) {
 			$meta = serialize(array($lang, $namespace));
+
 			if (!isset($this->metaData[$meta]) || !in_array($original, $this->metaData[$meta])) {
 				return FALSE;
 			}
 			if (FALSE === $this->newTranslations[$original]) {
 				return NULL;
 			}
+
 			$seekVariant = $variant +1;
 			while (!isset($this->newTranslations[$original][$seekVariant])) {
 				--$seekVariant;
@@ -228,6 +244,7 @@ class File implements \LiveTranslator\ITranslatorStorage
 					break;
 				}
 			}
+
 			if ($seekVariant) {
 				return $this->newTranslations[$original][$seekVariant];
 			}
