@@ -54,6 +54,15 @@ Open your configuration file and add service:
 
 Dibi storage is in progress. You can write your own storage. See below.
 
+- **I have no database**
+
+You can store translations into plaintext file. Just add following service into your config
+and choose persistent and write-accessible (existing) directory:
+```
+	services:
+		translatorStorage: LiveTranslator\Storage\File(%appDir%/../data/localization)
+```
+
 - **I want to save translations elsewhere**
 
 Look at the interface `LiveTranslator\ITranslatorStorage` and implement it to write your own storage.
