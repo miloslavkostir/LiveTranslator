@@ -8,7 +8,7 @@ and changes other, mainly the storage where translations are saved.*
 LiveTranslator is tool for [Nette Framework](http://nette.org/en/).
 
 LiveTranslator enables simple and user friendly localization of your web, by letting you to translate your texts
-via panel in debug bar. Works with the Nette 2.0.
+via panel in debug bar. Works with the Nette 2
 
 
 Installation
@@ -83,9 +83,13 @@ the default language (it is language which in your web is written basically):
 
 ### 3. add panel to debugbar
 
-Add row into your `bootstrap.php`:
+Add row into your `bootstrap.php`. For Nette `2.0.*`:
 ```php
 Nette\Diagnostics\Debugger::$bar->addPanel($container->getByType('LiveTranslator\Panel'));
+```
+For Nette `2.1+`:
+```php
+Nette\Diagnostics\Debugger::getBar()->addPanel($container->getByType('LiveTranslator\Panel'));
 ```
 
 

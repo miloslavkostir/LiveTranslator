@@ -15,4 +15,9 @@ Assert::type('LiveTranslator\Panel', $container->translatorPanel);
 Assert::equal('horizontal', $container->translatorPanel->getLayout());
 Assert::equal(500, $container->translatorPanel->getHeight());
 
-\Nette\Diagnostics\Debugger::$bar->addPanel($container->translatorPanel);
+if (\Nette\Framework::VERSION_ID >= 20100) {
+	\Nette\Diagnostics\Debugger::getBar()->addPanel($container->translatorPanel);
+
+} else {
+	\Nette\Diagnostics\Debugger::$bar->addPanel($container->translatorPanel);
+}
