@@ -10,7 +10,7 @@ class File implements \LiveTranslator\ITranslatorStorage
 	protected $storageDir;
 
 	/** @var resource[] */
-	protected $handlers;
+	protected $handlers = array();
 
 	/** @var array */
 	private $newTranslations = array();
