@@ -148,21 +148,7 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 					$this->translator->setTranslation($string, $translated);
 				}
 			}
-
 			exit;
-		}
-	}
-
-	function ordinalSuffix($count){
-		switch (substr($count, -1)) {
-			case 1:
-				return 'st';
-			case 2:
-				return 'nd';
-			case 3:
-				return 'rd';
-			default:
-				return 'th';
 		}
 	}
 
