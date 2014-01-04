@@ -1,0 +1,10 @@
+language: php
+php:
+    - 5.3.3
+
+script:
+    - VERBOSE=true chmod a+x ./tests/run-tests.sh
+    - ./tests/run-tests.sh -s tests/
+
+before_script:
+    - composer install --no-interaction --dev --prefer-source
