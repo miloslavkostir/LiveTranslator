@@ -19,9 +19,9 @@ Installation
 
 ```json
 {
-    "require": {
-        "vladahejda/livetranslator": ">=0.9.0"
-    }
+	"require": {
+		"vladahejda/livetranslator": ">=0.9.0"
+	}
 }
 ```
 
@@ -99,8 +99,8 @@ Inject LiveTranslator, set current language and give translator to template and 
 ```php
 class BasePresenter extends \Nette\Application\UI\Presenter
 {
-    /** @var string @persistent */
-    public $lang = 'en';
+	/** @var string @persistent */
+	public $lang = 'en';
 
 	/** @var \LiveTranslator\Translator @inject */
 	public $translator;
