@@ -8,7 +8,7 @@ and changes other, mainly the storage where translations are saved.*
 LiveTranslator is tool for [Nette Framework](http://nette.org/en/).
 
 LiveTranslator enables simple and user friendly localization of your web, by letting you to translate your texts
-via panel in debug bar. Works with the Nette 2
+via panel in debug bar. Works with the Nette 2.
 
 
 Installation
