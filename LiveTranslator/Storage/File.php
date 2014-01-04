@@ -124,7 +124,7 @@ class File implements \LiveTranslator\ITranslatorStorage
 		if ($this->newTranslations) {
 			foreach ($this->metaData as $meta => $originals) {
 				list($lang, $namespace) = unserialize($meta);
-				$filePath = "$this->storageDir/" . $this->getFilename($lang, $namespace);
+				$filePath = $this->storageDir . DIRECTORY_SEPARATOR . $this->getFilename($lang, $namespace);
 				$data = file_exists($filePath) ? file($filePath) : array();
 
 				foreach ($data as $i => &$row) {
@@ -177,7 +177,7 @@ class File implements \LiveTranslator\ITranslatorStorage
 			return $this->handlers[$file];
 		}
 
-		$filePath = "$this->storageDir\\$file";
+		$filePath = $this->storageDir . DIRECTORY_SEPARATOR . $file;
 
 		if (file_exists($filePath)) {
 			$handler = fopen($filePath, 'r+');
