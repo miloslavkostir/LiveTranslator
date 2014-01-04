@@ -95,15 +95,17 @@ Nette\Diagnostics\Debugger::getBar()->addPanel($container->getByType('LiveTransl
 
 ### 4. set up your BasePresenter
 
-Inject LiveTranslator, set current language and give translator to template:
+Inject LiveTranslator, set current language and give translator to template and forms:
 ```php
 class BasePresenter extends \Nette\Application\UI\Presenter
 {
-    /** @persistent */
+    /** @var string @persistent */
     public $lang = 'en';
 
-	protected $translator;
+	/** @var \LiveTranslator\Translator @inject */
+	public $translator;
 
+	// since Nette 2.1 you can omit this method
 	public function injectTranslator(\LiveTranslator\Translator $translator)
 	{
 		$this->translator = $translator;
@@ -115,10 +117,18 @@ class BasePresenter extends \Nette\Application\UI\Presenter
 		$this->translator->setCurrentLang($this->lang);
 		$this->template->setTranslator($this->translator);
 	}
+
+	// to have translated even forms add this method too
+	protected function createComponent($name)
+	{
+		$component = parent::createComponent($name);
+		if ($component instanceof \Nette\Forms\Form) {
+			$component->setTranslator($this->translator);
+		}
+		return $component;
+	}
 }
 ```
-
-*Translator can be given to Nette forms too. `$form->setTranslator($translator)`*
 
 
 ### 5. mark texts for translation
