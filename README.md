@@ -1,3 +1,9 @@
+[![Latest Stable Version](https://poser.pugx.org/vladahejda/livetranslator/v/stable.png)](https://packagist.org/packages/vladahejda/livetranslator)
+[![Total Downloads](https://poser.pugx.org/vladahejda/livetranslator/downloads.png)](https://packagist.org/packages/vladahejda/livetranslator)
+[![Montly Downloads](https://poser.pugx.org/vladahejda/livetranslator/d/monthly.png)](https://packagist.org/packages/vladahejda/livetranslator)
+[![Daily Downloads](https://poser.pugx.org/vladahejda/livetranslator/d/daily.png)](https://packagist.org/packages/vladahejda/livetranslator)
+
+
 LiveTranslator
 ===
 
