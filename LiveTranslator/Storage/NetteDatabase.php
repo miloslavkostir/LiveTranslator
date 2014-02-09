@@ -21,11 +21,12 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 	 * @param string $defaultTableName name of table with original texts
 	 * @param string $translationTableName name of table with translated texts
 	 * @param \Nette\Database\Connection $db
+	 * @param \Nette\Database\Context|NULL $context
 	 * @throws \Nette\InvalidArgumentException
 	 */
-	public function __construct($defaultTableName, $translationTableName, \Nette\Database\Connection $db)
+	public function __construct($defaultTableName, $translationTableName, \Nette\Database\Connection $db, \Nette\Database\Context $context = NULL)
 	{
-		$this->db = $db;
+		$this->db = $context ?: $db; // Context is part of newer Nette version
 		if (!preg_match('/^[a-z_]\w*$/i', $defaultTableName)){
 			throw new \Nette\InvalidArgumentException("Table name '$defaultTableName' contains forbidden character(s).");
 		}
@@ -56,7 +57,7 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 		$arg[] = $lang;
 		$arg[] = $variant;
 
-		$translation = call_user_func_array(array($this->db, 'fetchColumn'), $arg);
+		$translation = $this->fetchField($arg);
 
 		return $translation ?: NULL;
 	}
@@ -107,13 +108,13 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 		$arg[0] .= "`text` = ?";
 		$arg[] = $original;
 
-		$textId = call_user_func_array(array($this->db, 'fetchColumn'), $arg);
+		$textId = $this->fetchField($arg);
 
 		if ($textId){
-			$id = $this->db->fetchColumn("
+			$id = $this->fetchField(array("
 				SELECT `id` FROM `$this->translationTable`
 				WHERE `text_id` = ? AND `lang` = ? AND `variant` = ?", $textId, $lang, $variant
-			);
+			));
 		}
 
 		if ($textId && $id){
@@ -157,11 +158,20 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 		$arg[] = $original;
 		$arg[] = $lang;
 
-		$id = call_user_func_array(array($this->db, 'fetchColumn'), $arg);
+		$id = $this->fetchField($arg);
 
 		if ($id){
 			$this->db->table($this->translationTable)->where('text_id', $id)->delete();
 			$this->db->table($this->defaultTable)->where('id', $id)->delete();
 		}
 	}
+
+
+
+	private function fetchField(array $args)
+	{
+		$databaseMethodName = $this->db instanceof \Nette\Database\Context ? 'fetchField' : 'fetchColumn';
+		return call_user_func_array(array($this->db, $databaseMethodName), $args);
+	}
+
 }
