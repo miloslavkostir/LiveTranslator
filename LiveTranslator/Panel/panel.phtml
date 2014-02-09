@@ -198,18 +198,27 @@ div.TranslationPanel-stringVariant textarea.disabled {
 var JSON = JSON || {};
 
 JSON.stringify = JSON.stringify || function (obj) {
+	String.prototype.escapeSpecialChars = String.prototype.escapeSpecialChars || function() {
+		return this.replace(/[\\]/g, "\\\\")
+				.replace(/([\"\'])/g, '\\$1')
+				.replace(/[\n]/g, "\\n")
+				.replace(/[\r]/g, "\\r")
+				.replace(/[\u2028]/g, "\\u2028")
+				.replace(/[\u2029]/g, "\\u2029");
+	};
+
 	var t = typeof (obj);
 	if (t != "object" || obj === null) {
 		// simple data type
-		if (t == "string") obj = '"'+obj+'"';
+		if (t == "string") obj = '"'+obj.escapeSpecialChars()+'"';
 		return String(obj);
 	} else {
 		var n, v, json = [], arr = (obj && obj.constructor == Array);
 		for (n in obj) {
 			v = obj[n]; t = typeof(v);
-			if (t == "string") v = '"'+v.replace(/\"/g, '\\"')+'"';
+			if (t == "string") v = '"'+v.escapeSpecialChars()+'"';
 			else if (t == "object" && v !== null) v = JSON.stringify(v);
-			json.push((arr ? "" : '"' + n.replace(/\"/g, '\\"') + '":') + String(v));
+			json.push((arr ? "" : '"' + n.escapeSpecialChars() + '":') + String(v));
 		}
 
 		return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
