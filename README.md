@@ -81,25 +81,17 @@ Then add storage into your configuration file as a service.
 Into your config file add two more services `LiveTranslator\Translator` and `LiveTranslator\Panel` and define
 the default language (it is language which in your web is written basically):
 ```
-	services:
-		translator: LiveTranslator\Translator(en)
-		translatorPanel: LiveTranslator\Panel
+nette:
+    debugger:
+        bar:
+            - LiveTranslator\Panel
+services:
+	translator: LiveTranslator\Translator(en)
+	translatorPanel: LiveTranslator\Panel
 ```
 
 
-### 3. add panel to debugbar
-
-Add row into your `bootstrap.php`. For Nette `2.0.*`:
-```php
-Nette\Diagnostics\Debugger::$bar->addPanel($container->getByType('LiveTranslator\Panel'));
-```
-For Nette `2.1+`:
-```php
-Nette\Diagnostics\Debugger::getBar()->addPanel($container->getByType('LiveTranslator\Panel'));
-```
-
-
-### 4. set up your BasePresenter
+### 3. set up your BasePresenter
 
 Inject LiveTranslator, set current language and give translator to template and forms:
 ```php
@@ -121,7 +113,13 @@ class BasePresenter extends \Nette\Application\UI\Presenter
 	{
 		parent::startup();
 		$this->translator->setCurrentLang($this->lang);
-		$this->template->setTranslator($this->translator);
+	}
+	
+	protected function createTemplate($class = NULL)
+	{
+		$template = parent::createTemplate($class);
+		$template->setTranslator($this->translator);
+		return $template;
 	}
 
 	// to have translated even forms add this method too
@@ -137,7 +135,7 @@ class BasePresenter extends \Nette\Application\UI\Presenter
 ```
 
 
-### 5. mark texts for translation
+### 4. mark texts for translation
 
 In presenters call `$this->translator->translate('text to translate')`, in latte use underscore macro
 `{_ 'text to translate'}`
