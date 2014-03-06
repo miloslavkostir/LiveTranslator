@@ -4,6 +4,8 @@
 [![Daily Downloads](https://poser.pugx.org/vladahejda/livetranslator/d/daily.png)](https://packagist.org/packages/vladahejda/livetranslator)
 
 
+[DEMO](http://livetranslator.hejdav.cz/)
+
 LiveTranslator
 ===
 
