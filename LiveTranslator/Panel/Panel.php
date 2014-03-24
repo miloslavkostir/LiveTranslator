@@ -25,17 +25,17 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 	/** @var Translator */
 	protected $translator;
 
-	/** @var Nette\Http\Request */
+	/** @var Nette\Http\IRequest */
 	protected $httpRequest;
 
 
 
 	/**
 	 * @param Translator $translator
-	 * @param Nette\Http\Request $httpRequest
+	 * @param Nette\Http\IRequest $httpRequest
 	 * @throws Nette\InvalidArgumentException
 	 */
-	public function __construct(Translator $translator, Nette\Http\Request $httpRequest)
+	public function __construct(Translator $translator, Nette\Http\IRequest $httpRequest)
 	{
 		$this->translator = $translator;
 		$this->httpRequest = $httpRequest;
@@ -135,7 +135,7 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 	 */
 	private function processRequest()
 	{
-		if ($this->httpRequest->isPost() && $this->httpRequest->isAjax() && $this->httpRequest->getHeader(self::XHR_HEADER)) {
+		if ($this->httpRequest->isMethod('post') && $this->httpRequest->isAjax() && $this->httpRequest->getHeader(self::XHR_HEADER)) {
 			$data = json_decode(file_get_contents('php://input'));
 
 			if ($data) {
