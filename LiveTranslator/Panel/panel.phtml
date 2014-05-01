@@ -17,12 +17,12 @@
 
 #TranslationPanel .nette-inner {
 	max-width: 800px !important;
-	height: {!$panel->height}px;
+	height: {$panel->height|noescape}px;
 	padding: 1px;
 }
 
 #TranslationPanel-sidebar {
-	width: {!$panel->layout == 'vertical' ? '40%' : '30%'};
+	width: {$panel->layout == 'vertical' ? '40%' : '30%'|noescape};
 	height: 100%;
 	overflow: hidden;
 	float: left;
@@ -30,7 +30,7 @@
 }
 
 #TranslationPanel-strings {
-	height: {!$panel->height - 38}px;
+	height: {$panel->height - 38|noescape}px;
 	overflow: auto;
 	border: 1px solid #AAA;
 }
@@ -96,7 +96,7 @@
 }
 
 #TranslationPanel-editor {
-	width: {!$panel->layout == 'vertical' ? '58%' : '68%'};
+	width: {$panel->layout == 'vertical' ? '58%' : '68%'|noescape};
 	height: 100%;
 	margin: -1px -1px -1px 0;
 	float: right;
@@ -173,7 +173,7 @@ div.TranslationPanel-stringVariant textarea.disabled {
 
 #TranslationPanel-status textarea {
 	background-color: #fff;
-	width: {!$panel->layout == 'vertical' ? '340px' : '532px'};
+	width: {$panel->layout == 'vertical' ? '340px' : '532px'|noescape};
 	height: 40px;
 }
 
@@ -263,7 +263,7 @@ function clone(obj){
 
 
 var translationPanel = {
-	strings: {!json_encode($translator->getAllStrings())},
+	strings: {json_encode($translator->getAllStrings())|noescape},
 	variants: {$translator->getVariantsCount()},
 
 	updatedStrings: [],

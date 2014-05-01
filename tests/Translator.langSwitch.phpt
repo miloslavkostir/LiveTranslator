@@ -6,7 +6,7 @@ $container = require __DIR__ . '/bootstrap.application.php';
 require __DIR__.'/storage/language.php';
 
 use \LiveTranslator\Translator as Tr;
-$trans = new Tr('en', new LanguageStorage, $container->session, $container->application);
+$trans = new Tr('en', new LanguageStorage, $container->getService('session'), $container->getService('application'));
 
 $trans->setCurrentLang('cz');
 

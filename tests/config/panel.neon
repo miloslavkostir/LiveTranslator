@@ -1,9 +1,8 @@
-production:
-	services:
-		translatorStorage: DummyStorage
-		translatorPanel:
-			class: LiveTranslator\Panel
-			setup:
-				- setLayout(horizontal)
-				- setHeight(500)
-		translator: LiveTranslator\Translator(en)
+services:
+	translatorStorage: DummyStorage
+	translatorPanel:
+		class: LiveTranslator\Panel
+		setup:
+			- setLayout(horizontal)
+			- setHeight(500)
+	translator: LiveTranslator\Translator(en)

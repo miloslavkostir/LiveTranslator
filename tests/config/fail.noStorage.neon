@@ -1,3 +1,2 @@
-production:
-	services:
-		translator: LiveTranslator\Translator(en)
+services:
+	translator: LiveTranslator\Translator(en)

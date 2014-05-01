@@ -14,6 +14,9 @@ function removeTranslations($dir) {
 }
 
 $dir = __DIR__.'/temp/translations';
+if (!file_exists($dir)) {
+	mkdir($dir);
+}
 removeTranslations($dir);
 $fileStorage = new \LiveTranslator\Storage\File($dir);
 

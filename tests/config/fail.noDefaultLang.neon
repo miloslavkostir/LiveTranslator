@@ -1,4 +1,3 @@
-production:
-	services:
-		translatorStorage: DummyStorage
-		translator: LiveTranslator\Translator
+services:
+	translatorStorage: DummyStorage
+	translator: LiveTranslator\Translator

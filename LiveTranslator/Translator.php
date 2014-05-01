@@ -57,6 +57,7 @@ class Translator extends Nette\Object implements Nette\Localization\ITranslator
 	{
 		$this->setDefaultLang($defaultLang);
 		$this->translatorStorage = $translatorStorage;
+		$session->start();
 		$this->session = $session;
 		$this->application = $application;
 	}

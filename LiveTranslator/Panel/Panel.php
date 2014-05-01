@@ -7,8 +7,9 @@
 namespace LiveTranslator;
 
 use Nette;
+use Latte;
 
-class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
+class Panel extends Nette\Object implements \Tracy\IBarPanel
 {
 
 	const XHR_HEADER = 'X-Translation-Client';
@@ -106,19 +107,19 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 	 */
 	public function getPanel()
 	{
+		$latte = $this->createTemplate();
 		$file = $this->translator->isCurrentLangDefault() ? '/panel.inactive.phtml' : '/panel.phtml';
-		$template = $this->createTemplate(__DIR__.$file);
-		$template->panel = $this;
-		$template->translator = $this->translator;
-		$template->lang = $this->translator->getCurrentLang();
+		$parameters = array();
+		$parameters['panel'] = $this;
+		$parameters['translator'] = $this->translator;
+		$parameters['lang'] = $this->translator->getCurrentLang();
 		if ($this->translator->getPresenterLanguageParam()){
-			$template->availableLangs = $this->translator->getAvailableLanguages();
+			$parameters['availableLangs'] = $this->translator->getAvailableLanguages();
 		}
 		else {
-			$template->availableLangs = NULL;
+			$parameters['availableLangs'] = NULL;
 		}
-
-		return $template->__toString();
+		return $latte->renderToString(__DIR__ . $file, $parameters);
 	}
 
 
@@ -153,26 +154,22 @@ class Panel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 	}
 
 
-	private function createTemplate($file)
+	private function createTemplate()
 	{
-		$template = new Nette\Templating\FileTemplate($file);
-		$latte = new Nette\Latte\Engine;
-		Nette\Latte\Macros\CoreMacros::install($latte->getCompiler());
-		$template->registerHelperLoader('Nette\Templating\Helpers::loader')
-			->registerHelper('ordinal', function($n){
-				switch (substr($n, -1)) {
-					case 1:
-						return 'st';
-					case 2:
-						return 'nd';
-					case 3:
-						return 'rd';
-					default:
-						return 'th';
-				}
-			})
-			->registerFilter($latte)
-		;
-		return $template;
+		$latte = new Latte\Engine;
+		$latte->addFilter('ordinal', function($n){
+			switch (substr($n, -1)) {
+				case 1:
+					return 'st';
+				case 2:
+					return 'nd';
+				case 3:
+					return 'rd';
+				default:
+					return 'th';
+			}
+		});
+
+		return $latte;
 	}
 }
