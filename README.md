@@ -3,6 +3,8 @@
 [![Montly Downloads](https://poser.pugx.org/vladahejda/livetranslator/d/monthly.png)](https://packagist.org/packages/vladahejda/livetranslator)
 [![Daily Downloads](https://poser.pugx.org/vladahejda/livetranslator/d/daily.png)](https://packagist.org/packages/vladahejda/livetranslator)
 
+[![Build Status](https://secure.travis-ci.org/VladaHejda/LiveTranslator.png?branch=master)](https://travis-ci.org/VladaHejda/LiveTranslator)
+
 
 [DEMO](http://livetranslator.hejdav.cz/)
 
