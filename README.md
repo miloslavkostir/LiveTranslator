@@ -28,8 +28,9 @@ Installation
 ```json
 {
 	"require": {
-		"vladahejda/livetranslator": ">=0.9.0"
-	}
+		"vladahejda/livetranslator": "~1.0"
+	},
+	"minimum-stability": "RC"
 }
 ```
 
@@ -84,9 +85,9 @@ Into your config file add two more services `LiveTranslator\Translator` and `Liv
 the default language (it is language which in your web is written basically):
 ```
 nette:
-    debugger:
-        bar:
-            - LiveTranslator\Panel
+	debugger:
+		bar:
+			- LiveTranslator\Panel
 services:
 	translator: LiveTranslator\Translator(en)
 	translatorPanel: LiveTranslator\Panel
