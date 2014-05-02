@@ -55,7 +55,15 @@ class File implements \LiveTranslator\ITranslatorStorage
 				break;
 			}
 			while ($translation = fgets($handler)) {
-				$translation = trim($translation);
+				if (!empty($prepend)) {
+					$translation = $prepend . $translation;
+					$prepend = NULL;
+				}
+				if (substr($translation, -4) !== "\";}\n") {
+					$prepend = $translation;
+					continue;
+				}
+
 				$translation = unserialize($translation);
 				if ($original === $translation[0]) {
 					while (!isset($translation[$variant +1])) {
@@ -85,7 +93,15 @@ class File implements \LiveTranslator\ITranslatorStorage
 		$translations = array();
 
 		while ($translation = fgets($handler)) {
-			$translation = trim($translation);
+			if (!empty($prepend)) {
+				$translation = $prepend . $translation;
+				$prepend = NULL;
+			}
+			if (substr($translation, -4) !== "\";}\n") {
+				$prepend = $translation;
+				continue;
+			}
+
 			$translation = unserialize($translation);
 			$translations[array_shift($translation)] = $translation;
 		}
@@ -128,8 +144,16 @@ class File implements \LiveTranslator\ITranslatorStorage
 				$data = file_exists($filePath) ? file($filePath) : array();
 
 				foreach ($data as $i => &$row) {
-					$translation = trim($row);
-					$translation = unserialize($translation);
+					if (!empty($prepend)) {
+						$row = $prepend . $row;
+						$prepend = NULL;
+					}
+					if (substr($row, -4) !== "\";}\n") {
+						$prepend = $row;
+						continue;
+					}
+
+					$translation = unserialize($row);
 					$index = array_search($translation[0], $originals);
 
 					if (FALSE !== $index) {
@@ -196,7 +220,7 @@ class File implements \LiveTranslator\ITranslatorStorage
 	 */
 	protected function getFilename($lang, $namespace = NULL)
 	{
-		return "$lang" . ($namespace === NULL ? '' : ".$namespace");
+		return $lang . ($namespace === NULL ? '' : ".$namespace");
 	}
 
 

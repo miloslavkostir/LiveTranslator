@@ -13,7 +13,7 @@ function removeTranslations($dir) {
 	}
 }
 
-$dir = __DIR__.'/temp/translations';
+$dir = __DIR__.'/temp/File.storage';
 if (!file_exists($dir)) {
 	mkdir($dir);
 }
