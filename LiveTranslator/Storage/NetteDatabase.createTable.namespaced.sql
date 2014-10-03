@@ -5,7 +5,7 @@ CREATE TABLE `localization_text` (
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE (`ns`, `text`)
-) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_general_ci COMMENT='default texts for translations';
+) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_bin COMMENT='default texts for translations';
 
 CREATE TABLE `localization` (
   `id` int(1) UNSIGNED NOT NULL AUTO_INCREMENT,
