@@ -22,16 +22,15 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 	 * @param string $translationTableName name of table with translated texts
 	 * @param \Nette\Database\Connection $db
 	 * @param \Nette\Database\Context|NULL $context
-	 * @throws \Nette\InvalidArgumentException
 	 */
 	public function __construct($defaultTableName, $translationTableName, \Nette\Database\Connection $db, \Nette\Database\Context $context = NULL)
 	{
 		$this->db = $context ?: $db; // Context is part of newer Nette version
-		if (!preg_match('/^[a-z_]\w*$/i', $defaultTableName)){
-			throw new \Nette\InvalidArgumentException("Table name '$defaultTableName' contains forbidden character(s).");
+		if ($defaultTableName[0] !== '`') {
+			$defaultTableName = "`{$defaultTableName}`";
 		}
-		if (!preg_match('/^[a-z_]\w*$/i', $translationTableName)){
-			throw new \Nette\InvalidArgumentException("Table name '$translationTableName' contains forbidden character(s).");
+		if ($translationTableName[0] !== '`') {
+			$translationTableName = "`{$translationTableName}`";
 		}
 		$this->defaultTable = $defaultTableName;
 		$this->translationTable = $translationTableName;
@@ -43,8 +42,8 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 	{
 		$arg = array();
 
-		$arg[0] = "SELECT t.`translation` FROM `$this->defaultTable` d
-			JOIN `$this->translationTable` t ON d.`id` = t.`text_id`
+		$arg[0] = "SELECT t.`translation` FROM {$this->defaultTable} d
+			JOIN {$this->translationTable} t ON d.`id` = t.`text_id`
 			WHERE ";
 
 		if ($namespace){
@@ -68,8 +67,8 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 	{
 		$arg = array();
 
-		$arg[0] = "SELECT d.`text`, t.`variant`, t.`translation` FROM `$this->defaultTable` d
-			JOIN `$this->translationTable` t ON d.`id` = t.`text_id`
+		$arg[0] = "SELECT d.`text`, t.`variant`, t.`translation` FROM {$this->defaultTable} d
+			JOIN {$this->translationTable} t ON d.`id` = t.`text_id`
 			WHERE ";
 
 		if ($namespace){
@@ -98,7 +97,7 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 	{
 		$arg = array();
 
-		$arg[0] = "SELECT `id` FROM `$this->defaultTable` WHERE ";
+		$arg[0] = "SELECT `id` FROM {$this->defaultTable} WHERE ";
 
 		if ($namespace){
 			$arg[0] .= '`ns` = ? AND ';
@@ -112,25 +111,23 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 
 		if ($textId){
 			$id = $this->fetchField(array("
-				SELECT `id` FROM `$this->translationTable`
+				SELECT `id` FROM {$this->translationTable}
 				WHERE `text_id` = ? AND `lang` = ? AND `variant` = ?", $textId, $lang, $variant
 			));
 		}
 
 		if ($textId && $id){
-			$this->db->table($this->translationTable)->where('id', $id)->update(array(
-				'translation' => $translated,
-			));
+			$this->db->query("UPDATE {$this->translationTable} SET translation = ? WHERE id = ?", $translated, $id);
 		}
 		else {
 			if (!$textId){
 				$data = array('text' => $original);
 				if ($namespace) $data['ns'] = $namespace;
-				$row = $this->db->table($this->defaultTable)->insert($data);
-				$textId = $row->id;
+				$this->db->query("INSERT INTO {$this->defaultTable} ?", $data);
+				$textId = $this->db->fetch("SELECT LAST_INSERT_ID() id")->id;
 			}
 
-			$this->db->table($this->translationTable)->insert(array(
+			$this->db->query("INSERT INTO {$this->translationTable} ?", array(
 				'text_id' => $textId,
 				'lang' => $lang,
 				'variant' => $variant,
@@ -145,8 +142,8 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 	{
 		$arg = array();
 
-		$arg[0] = "SELECT d.`id` FROM `$this->defaultTable` d
-			JOIN `$this->translationTable` t ON d.`id` = t.`text_id`
+		$arg[0] = "SELECT d.`id` FROM {$this->defaultTable} d
+			JOIN {$this->translationTable} t ON d.`id` = t.`text_id`
 			WHERE ";
 
 		if ($namespace){
@@ -161,8 +158,8 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 		$id = $this->fetchField($arg);
 
 		if ($id){
-			$this->db->table($this->translationTable)->where('text_id', $id)->delete();
-			$this->db->table($this->defaultTable)->where('id', $id)->delete();
+			$this->db->query("DELETE FROM {$this->translationTable} WHERE text_id = ?", $id);
+			$this->db->query("DELETE FROM {$this->defaultTable} WHERE id = ?", $id);
 		}
 	}
 
