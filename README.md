@@ -197,8 +197,8 @@ You can say what plural-form each language uses via `setAvailableLanguages`, thi
 
 Then the panel will let you translate the text even in plural. More you need to do is to give plural variants
 of the default language to the translator, in array. And the number. Example:
-`$translator->translate( array( 'There is %d apple', 'There is %d apples' ), 3 )`
-or in latte: `{_ ['There is %d apple', 'There is %d apples'], 3}`.
+`$translator->translate( array( 'There is %d apple', 'There are %d apples' ), 3 )`
+or in latte: `{_ ['There is %d apple', 'There are %d apples'], 3}`.
 
 
 ### Using namespaces
