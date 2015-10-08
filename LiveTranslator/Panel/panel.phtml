@@ -1,4 +1,4 @@
-﻿<style type="text/css">
+<style type="text/css">
 #TranslationPanel {
 	min-width: 600px;
 }
@@ -539,7 +539,7 @@ var translationPanel = {
 			if (xmlHttp.readyState == 4) {
 				if (xmlHttp.status == 200) {
 					for (var i in translationPanel.erasedStrings) {
-						delete translationPanel.strings[translationPanel.erasedStrings[i]];
+						translationPanel.strings[translationPanel.erasedStrings[i]] = false;
 					}
 					translationPanel.updatedStrings = [];
 					translationPanel.erasedStrings = [];

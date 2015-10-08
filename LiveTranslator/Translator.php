@@ -415,7 +415,7 @@ class Translator extends Nette\Object implements Nette\Localization\ITranslator
 		if ($translated === FALSE) {
 			$newStrings = &$this->getNewStrings();
 			$this->translatorStorage->removeTranslation($original, $lang, $this->namespace);
-			unset($newStrings[$original]);
+			$newStrings[$original] = FALSE;
 			return;
 		}
 
@@ -426,6 +426,8 @@ class Translator extends Nette\Object implements Nette\Localization\ITranslator
 		foreach ($translated as $variant => $string) {
 			$this->translatorStorage->setTranslation($original, $string, $lang, $variant, $this->namespace);
 		}
+		$newStrings = &$this->getNewStrings();
+		unset($newStrings[$original]);
 	}
 
 
