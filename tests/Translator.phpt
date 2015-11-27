@@ -31,6 +31,9 @@ Assert::equal('jména Johnny, George',  $trans->translate(array('name %s'), 'Joh
 Assert::equal('Woohoo křičí 1 muž.',  $trans->translate(array('%2$d man screams %1$s.'), 'Woohoo', 1));
 Assert::equal('2 muži křičí "Woohoo!".', $trans->translate(array('%2$d man screams %1$s.'), 'Woohoo', 2));
 Assert::equal('Woohoo křičí 5 mužů.', $trans->translate(array('%2$d man screams %1$s.'), 'Woohoo', 5));
+Assert::equal('Tax is 21%', $trans->translate('Tax is 21%'));
+Assert::equal('Tax is 21% or 15%', $trans->translate('Tax is 21% or 15%'));
+Assert::equal('50%done', $trans->translate('50%done'));
 
 $trans->setCurrentLang('en');
 
