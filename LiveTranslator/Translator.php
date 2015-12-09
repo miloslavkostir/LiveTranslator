@@ -487,7 +487,7 @@ class Translator extends Nette\Object implements Nette\Localization\ITranslator
 	{
 		if (isset($this->cache)) {
 			$ns = $this->namespace ?: 'default';
-			$strings = $this->cache->load("newStrings-$ns");
+			$strings = (array) $this->cache->load("newStrings-$ns");
 
 		} else {
 			// todo mohlo by to mít jednu section a ns by byly jednotlivý property zde
