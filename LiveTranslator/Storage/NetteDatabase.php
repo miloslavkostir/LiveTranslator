@@ -68,7 +68,7 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 				$arg[] = $namespace;
 			}
 
-			$arg[0] .= 'd.`text` = ? AND t.`lang` = ? AND t.`variant` <= ? ORDER BY t.`variant` DESC';
+			$arg[0] .= 'BINARY d.`text` = ? AND t.`lang` = ? AND t.`variant` <= ? ORDER BY t.`variant` DESC';
 			$arg[] = $original;
 			$arg[] = $lang;
 			$arg[] = $variant;
@@ -132,7 +132,7 @@ class NetteDatabase implements \LiveTranslator\ITranslatorStorage
 			$arg[] = $namespace;
 		}
 
-		$arg[0] .= "`text` = ?";
+		$arg[0] .= "BINARY `text` = ?";
 		$arg[] = $original;
 
 		$textId = $this->fetchField($arg);

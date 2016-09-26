@@ -293,7 +293,7 @@ class Translator extends Nette\Object implements Nette\Localization\ITranslator
 	 * @return string
 	 * @throws TranslatorException
 	 */
-	public function translate($string, $count = 1)
+	public function translate($string, $count = NULL)
 	{
 		$hasVariants = FALSE;
 		if (is_array($string)) {
@@ -310,6 +310,9 @@ class Translator extends Nette\Object implements Nette\Localization\ITranslator
 				$args = func_get_args();
 				unset($args[0]);
 				$args = array_values($args);
+
+			} elseif ($count === NULL) {
+				$args = NULL;
 
 			} else {
 				$args = array($count);
@@ -383,7 +386,7 @@ class Translator extends Nette\Object implements Nette\Localization\ITranslator
 			}
 		}
 
-		if (FALSE !== strpos($translated, '%')) {
+		if ($args !== NULL AND FALSE !== strpos($translated, '%')) {
 			$tmp = str_replace(array('%label', '%name', '%value'), array('#label', '#name', '#value'), $translated);
 			if (FALSE !== strpos($tmp, '%')) {
 				$translated = vsprintf($tmp, $args);
