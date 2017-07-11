@@ -95,8 +95,8 @@ class Panel extends Nette\Object implements \Tracy\IBarPanel
 	 */
 	public function getTab()
 	{
-		$template = new Nette\Templating\FileTemplate(__DIR__ . '/tab.phtml');
-		return $template->__toString();
+		$latte = $this->createTemplate();
+		return $latte->renderToString(__DIR__ . '/tab.phtml');
 	}
 
 
